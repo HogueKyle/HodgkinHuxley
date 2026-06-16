@@ -1,0 +1,59 @@
+import numpy as np
+
+
+def model(t, y0, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, Vm_NaT, Vm_NaP, Vm_CaT, Vm_CaH, Vm_KDR, Vm_KM, Vm_H, Vh_NaT, Vh_CaT, Vh_CaH, Vh_KDR, Vn_H, km_NaT, km_NaP, km_CaT, km_CaH, km_KDR, km_KM, km_H, kh_NaT, kh_CaT, kh_CaH, kh_KDR, kn_H, tau_m_CaT, tau_m_CaH, tau_m_KDR, tau_m_KM, tau_m_H, tau_h_CaT, tau_h_CaH, tau_h_KDR, tau_n_H, E_Na, E_Ca, E_K, E_L, E_H, C, I_app):
+    # Unpack
+    m_NaT0 = y0[0]
+    m_NaP0 = y0[1]
+    m_CaT0 = y0[2]
+    m_CaH0 = y0[3]
+    m_KDR0 = y0[4]
+    m_KM0 = y0[5]
+    m_H0 = y0[6]
+    h_NaT0 = y0[7]
+    h_CaT0 = y0[8]
+    h_CaH0 = y0[9]
+    h_KDR0 = y0[10]
+    n_H0 = y0[11]
+    V0 = y0[12]
+
+    #Variable time constant
+    tau_h_NaT = 0.2 + 0.007 * np.exp(np.exp(-(V0 - 40.6)/51.4))
+
+    #Currents
+    I_NaT = g_NaT * m_NaT0**3 * h_NaT0 * (V0 - E_Na)
+    I_NaP = g_NaP * m_NaP0 * (V0 - E_Na)
+    I_CaT = g_CaT * m_CaT0**2 * h_CaT0 * (V0 - E_Ca)
+    I_CaH = g_CaH * m_CaH0**2 * h_CaH0 * (V0 - E_Ca)
+    I_KDR = g_KDR * m_KDR0 * h_KDR0 * (V0 - E_K)
+    I_KM = g_KM * m_KM0 * (V0 - E_K)
+    I_L = g_L * (V0 - E_L)
+    I_H = g_H * (p * m_H0 + (1 - p) * n_H0) * (V0 - E_H)
+
+    #Voltage
+    dV = (I_app.getCurrent(t) - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L - I_H) / C
+
+    #Gating variables
+    dh_NaT = gateDerivative(V0, Vh_NaT, kh_NaT, h_NaT0, tau_h_NaT)
+    dm_CaT = gateDerivative(V0, Vm_CaT, km_CaT, m_CaT0, tau_m_CaT)
+    dh_CaT = gateDerivative(V0, Vh_CaT, kh_CaT, h_CaT0, tau_h_CaT)
+    dm_CaH = gateDerivative(V0, Vm_CaH, km_CaH, m_CaH0, tau_m_CaH)
+    dh_CaH = gateDerivative(V0, Vh_CaH, kh_CaH, h_CaH0, tau_h_CaH)
+    dm_KDR = gateDerivative(V0, Vm_KDR, km_KDR, m_KDR0, tau_m_KDR)
+    dh_KDR = gateDerivative(V0, Vh_KDR, kh_KDR, h_KDR0, tau_h_KDR)
+    dm_KM = gateDerivative(V0, Vm_KM, km_KM, m_KM0, tau_m_KM)
+    dm_H = gateDerivative(V0, Vm_H, km_H, m_H0, tau_m_H)
+    dn_H = gateDerivative(V0, Vn_H, kn_H, n_H0, tau_n_H)
+    #mNaT and mNaP are treated differently
+    dm_NaT = boltzmann(V0, Vm_NaT, km_NaT)
+    dm_NaP = boltzmann(V0, Vm_NaP, km_NaP)
+
+    #Pack
+    y = np.array([dm_NaT, dm_NaP, dm_CaT, dm_CaH, dm_KDR, dm_KM, dm_H, dh_NaT, dh_CaT, dh_CaH, dh_KDR, dn_H, dV]).T
+    return y
+
+def gateDerivative(V, Vx, kx, x, tau):
+    return (boltzmann(V, Vx, kx) - x) / tau
+
+def boltzmann(V, Vx, kx):
+    return 1 / (1 + np.exp(-(V - Vx) / kx))

@@ -1,7 +1,8 @@
 from Electrode import WhiteNoise
-from VoltageClamp import VoltageClamp
+from HodgkinHuxley import HogdkinHuxley
 
-test = VoltageClamp()
+test = HogdkinHuxley()
 test.setValues()
-current = WhiteNoise(10, 1000)
+current = WhiteNoise(10, 100)
 test.runModel(current)
+test.plotVoltageTimeSeries()
