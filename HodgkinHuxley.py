@@ -230,3 +230,9 @@ class HogdkinHuxley:
         plt.xlabel("Time (ms)")
         plt.ylabel("V")
         plt.show()
+
+    def plotAppliedCurrentTimeSeries(self):
+        plt.plot(self.t_eval, self.t_I_app)
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Iapp")
+        plt.show()
