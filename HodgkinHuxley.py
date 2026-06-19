@@ -1,7 +1,9 @@
+from cProfile import label
+
 import numpy as np
 from scipy.integrate import solve_ivp
 from matplotlib import pyplot as plt
-from utils import model
+from utils import model, conversionFactor_mToU, boltzmann
 
 
 class HogdkinHuxley:
@@ -85,6 +87,8 @@ class HogdkinHuxley:
         self.V0 = None
         # Conductance
         self.C = None
+        #Holding current
+        self.I_hold = None
         #Time series data
         self.t_m_NaT = None
         self.t_m_NaP = None
@@ -101,39 +105,42 @@ class HogdkinHuxley:
         self.t_V = None
         self.t_I_app = None
         self.t_eval = None
+        self.t_m_NaT = np.array([])
+        self.t_m_NaP = np.array([])
 
 
     def setValues(self):
+        #Units
         # Initialize conductance
-        self.g_NaT = 65.0
-        self.g_NaP = 0.1
-        self.g_CaT = 0.6
-        self.g_CaH = 0.74
-        self.g_KDR = 9.5
-        self.g_KM = 0.8
-        self.g_L = 0.02
-        self.g_H = 0.05
-        self.g_NaT_alt = 7.2603
-        self.g_NaP_alt = 0.0423
-        self.g_CaT_alt = 0.067
-        self.g_CaH_alt = 1.5208
-        self.g_KDR_alt = 12.505
-        self.g_KM_alt = 3.3837
-        self.g_L_alt = 0.0035
-        self.g_H_alt = 0.0503
+        self.g_NaT = 65.0 * conversionFactor_mToU
+        self.g_NaP = 0.1 * conversionFactor_mToU
+        self.g_CaT = 0.6 * conversionFactor_mToU
+        self.g_CaH = 0.74 * conversionFactor_mToU
+        self.g_KDR = 9.5 * conversionFactor_mToU
+        self.g_KM = 0.8 * conversionFactor_mToU
+        self.g_L = 0.02 * conversionFactor_mToU
+        self.g_H = 0.05 * conversionFactor_mToU
+        self.g_NaT_alt = 7.2603 * conversionFactor_mToU
+        self.g_NaP_alt = 0.0423 * conversionFactor_mToU
+        self.g_CaT_alt = 0.067 * conversionFactor_mToU
+        self.g_CaH_alt = 1.5208 * conversionFactor_mToU
+        self.g_KDR_alt = 12.505 * conversionFactor_mToU
+        self.g_KM_alt = 3.3837 * conversionFactor_mToU
+        self.g_L_alt = 0.0035 * conversionFactor_mToU
+        self.g_H_alt = 0.0503 * conversionFactor_mToU
         # Initialize gating variable
         self.m_NaT_inf = 0
         self.m_NaP_inf = 0
-        self.m_CaT0 = 0
-        self.m_CaH0 = 0
-        self.m_KDR0 = 0
-        self.m_KM0 = 0
-        self.m_H0 = 0
-        self.h_NaT0 = 0
-        self.h_CaT0 = 0
-        self.h_CaH0 = 0
-        self.h_KDR0 = 0
-        self.n_H0 = 0
+        self.m_CaT0 = 0.005486594704365255
+        self.m_CaH0 = 2.260443363987366e-06
+        self.m_KDR0 = 0.0014881270089334075
+        self.m_KM0 = 0.006693236665689997
+        self.m_H0 = 0.1554691454071592
+        self.h_NaT0 = 0.6713104329954209
+        self.h_CaT0 = 0.8537921873675318
+        self.h_CaH0 = 0.9456737145278049
+        self.h_KDR0 = 0.7694232333411584
+        self.n_H0 = 0.024919369791676596
         self.p = 0.85
         # Half activation voltage
         self.Vm_NaT = -37
@@ -181,58 +188,85 @@ class HogdkinHuxley:
         # Membrane voltage
         self.V0 = -80
         # Conductance
-        self.C = 1
+        self.C = 1 * (1 / conversionFactor_mToU)
 
-    def runModel(self, I_app):
+    def runModel(self, I_hold, I_app, voltageRateIncrease, memory, verbose):
         # Prepare ODE run
         start = 0
         step = 1
         length = I_app.getLength()
         t_span = [0, length]
         self.t_eval = np.arange(start, length, step)
-        y0_Gates = np.array([self.m_NaT_inf, self.m_NaP_inf, self.m_CaT0, self.m_CaH0, self.m_KDR0, self.m_KM0, self.m_H0, self.h_NaT0, self.h_CaT0, self.h_CaH0, self.h_KDR0, self.n_H0, self.V0]).T
-        args =[self.g_NaT, self.g_NaP, self.g_CaT, self.g_CaH, self.g_KDR, self.g_KM, self.g_L, self.g_H, self.p, self.Vm_NaT, self.Vm_NaP, self.Vm_CaT, self.Vm_CaH, self.Vm_KDR, self.Vm_KM, self.Vm_H, self.Vh_NaT, self.Vh_CaT, self.Vh_CaH, self.Vh_KDR, self.Vn_H, self.km_NaT, self.km_NaP, self.km_CaT, self.km_CaH, self.km_KDR, self.km_KM, self.km_H, self.kh_NaT, self.kh_CaT, self.kh_CaH, self.kh_KDR, self.kn_H, self.tau_m_CaT, self.tau_m_CaH, self.tau_m_KDR, self.tau_m_KM, self.tau_m_H, self.tau_h_CaT, self.tau_h_CaH, self.tau_h_KDR, self.tau_n_H, self.E_Na, self.E_Ca, self.E_K, self.E_L, self.E_H, self.C, I_app]
-        # Run ODE for gating
-        z = solve_ivp(model, t_span, y0_Gates, t_eval=self.t_eval, args=args).y
+        self.I_hold = I_hold
+        print(self.I_hold)
+        y0_Gates = np.array([self.m_CaT0, self.m_CaH0, self.m_KDR0, self.m_KM0, self.m_H0, self.h_NaT0, self.h_CaT0, self.h_CaH0, self.h_KDR0, self.n_H0, self.V0], dtype=np.longdouble).T
+        args =[self.I_hold, self.g_NaT, self.g_NaP, self.g_CaT, self.g_CaH, self.g_KDR, self.g_KM, self.g_L, self.g_H, self.p, self.Vm_NaT, self.Vm_NaP, self.Vm_CaT, self.Vm_CaH, self.Vm_KDR, self.Vm_KM, self.Vm_H, self.Vh_NaT, self.Vh_CaT, self.Vh_CaH, self.Vh_KDR, self.Vn_H, self.km_NaT, self.km_NaP, self.km_CaT, self.km_CaH, self.km_KDR, self.km_KM, self.km_H, self.kh_NaT, self.kh_CaT, self.kh_CaH, self.kh_KDR, self.kn_H, self.tau_m_CaT, self.tau_m_CaH, self.tau_m_KDR, self.tau_m_KM, self.tau_m_H, self.tau_h_CaT, self.tau_h_CaH, self.tau_h_KDR, self.tau_n_H, self.E_Na, self.E_Ca, self.E_K, self.E_L, self.E_H, self.C, I_app, voltageRateIncrease, verbose]
+        # Run ODE for gating  , method="DOP853", rtol=1e-10, atol=1e-13
+        z = solve_ivp(model, t_span, y0_Gates, t_eval=self.t_eval, args=args, method="LSODA", max_step=1e-4).y
         #Unpack
         #Time series
-        self.t_m_NaT = z[0]
-        self.t_m_NaP = z[1]
-        self.t_m_CaT = z[2]
-        self.t_m_CaH = z[3]
-        self.t_m_KDR = z[4]
-        self.t_m_KM = z[5]
-        self.t_m_H = z[6]
-        self.t_h_NaT = z[7]
-        self.t_h_CaT = z[8]
-        self.t_h_CaH = z[9]
-        self.t_h_KDR = z[10]
-        self.t_n_H = z[11]
-        self.t_V = z[12]
+        self.t_m_CaT = z[0]
+        self.t_m_CaH = z[1]
+        self.t_m_KDR = z[2]
+        self.t_m_KM = z[3]
+        self.t_m_H = z[4]
+        self.t_h_NaT = z[5]
+        self.t_h_CaT = z[6]
+        self.t_h_CaH = z[7]
+        self.t_h_KDR = z[8]
+        self.t_n_H = z[9]
+        self.t_V = z[10]
         self.t_I_app = I_app.getMultipleCurrents(self.t_eval)
-        #New initial conditions
-        self.m_NaT_inf = z[0,-1]
-        self.m_NaP_inf = z[1, -1]
-        self.m_CaT0 = z[2, -1]
-        self.m_CaH0 = z[3, -1]
-        self.m_KDR0 = z[4, -1]
-        self.m_KM0 = z[5, -1]
-        self.m_H0 = z[6, -1]
-        self.h_NaT0 = z[7, -1]
-        self.h_CaT0 = z[8, -1]
-        self.h_CaH0 = z[9, -1]
-        self.h_KDR0 = z[10, -1]
-        self.n_H0 = z[11, -1]
-        self.V0 = z[12, -1]
+
+        #Memory
+        if memory:
+
+            # Non derivative gating tracking
+            self.t_m_NaT = np.array([])
+            self.t_m_NaP = np.array([])
+            for voltage in self.t_V:
+                self.t_m_NaT = np.append(self.t_m_NaT, boltzmann(voltage, self.Vm_NaT, self.km_NaT))
+                self.t_m_NaP = np.append(self.t_m_NaP, boltzmann(voltage, self.Vm_NaP, self.km_NaP))
+
+            #New initial conditions
+            self.m_CaT0 = z[0, -1]
+            self.m_CaH0 = z[1, -1]
+            self.m_KDR0 = z[2, -1]
+            self.m_KM0 = z[3, -1]
+            self.m_H0 = z[4, -1]
+            self.h_NaT0 = z[5, -1]
+            self.h_CaT0 = z[6, -1]
+            self.h_CaH0 = z[7, -1]
+            self.h_KDR0 = z[8, -1]
+            self.n_H0 = z[9, -1]
+            self.V0 = z[10, -1]
+
+        return z
 
     def plotVoltageTimeSeries(self):
         plt.plot(self.t_eval, self.t_V)
         plt.xlabel("Time (ms)")
-        plt.ylabel("V")
+        plt.ylabel("mV")
         plt.show()
 
     def plotAppliedCurrentTimeSeries(self):
         plt.plot(self.t_eval, self.t_I_app)
         plt.xlabel("Time (ms)")
         plt.ylabel("Iapp")
+        plt.show()
+
+    def plotChannelTimeSeries(self):
+        plt.plot(self.t_eval, self.t_m_NaT, label="mNaT")
+        plt.plot(self.t_eval, self.t_m_NaP, label="mNaP")
+        plt.plot(self.t_eval, self.t_m_CaT, label="mCaT")
+        plt.plot(self.t_eval, self.t_m_CaH, label="mCaH")
+        plt.plot(self.t_eval, self.t_m_KDR, label="mKDR")
+        plt.plot(self.t_eval, self.t_m_KM, label="mKM")
+        plt.plot(self.t_eval, self.t_h_NaT, label="hNaT")
+        plt.plot(self.t_eval, self.t_h_CaT, label="hCaT")
+        plt.plot(self.t_eval, self.t_h_CaH, label="hCaH")
+        plt.plot(self.t_eval, self.t_h_KDR, label="hKDR")
+        plt.plot(self.t_eval, self.t_n_H, label="nH")
+        plt.xlabel("Time (ms)")
+        plt.legend()
         plt.show()
