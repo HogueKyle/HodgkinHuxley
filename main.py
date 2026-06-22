@@ -41,7 +41,9 @@ I_hold = -5.614e+02
 # print("V0 :" + str(z[10, -1]))
 # print("-------")
 #Run step current
-current = Step(300, 100, 0,3e-7 / sphereArea(5e-4))
+topCurrent = 3000
+#3e-7 / sphereArea(5e-8)
+current = Step(1500, 500, 0,topCurrent)
 test.runModel(I_hold, current, True, True, True)
 test.plotVoltageTimeSeries()
 test.plotAppliedCurrentTimeSeries()
