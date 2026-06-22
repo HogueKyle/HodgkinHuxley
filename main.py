@@ -1,9 +1,10 @@
 import numpy as np
 from scipy.optimize import curve_fit, least_squares
 
-from Electrode import WhiteNoise, Step
+from Electrode import WhiteNoise, Step, Chirp
 from HodgkinHuxley import HogdkinHuxley
-from utils import sphereArea
+from utils import sphereArea, conversionFactor_sTom
+
 
 def residuals(x, current, a, b, c):
     vPrime = test.runModel(x[0], current, a, b, c)[10, -1]
@@ -40,11 +41,21 @@ I_hold = -5.614e+02
 # print("n_H0 :" + str(z[9, -1]))
 # print("V0 :" + str(z[10, -1]))
 # print("-------")
+
 #Run step current
 topCurrent = 3000
 #3e-7 / sphereArea(5e-8)
-current = Step(1500, 500, 0,topCurrent)
+current = Step(1000, 500, 0,topCurrent)
 test.runModel(I_hold, current, True, True, True)
 test.plotVoltageTimeSeries()
 test.plotAppliedCurrentTimeSeries()
 test.plotChannelTimeSeries()
+
+# #Run chirp current
+# topCurrent = 3000
+# #3e-7 / sphereArea(5e-8)
+# current = Chirp(30*1000,0, 15/conversionFactor_sTom,0,topCurrent)
+# test.runModel(I_hold, current, True, True, True)
+# test.plotVoltageTimeSeries()
+# test.plotAppliedCurrentTimeSeries()
+# test.plotChannelTimeSeries()

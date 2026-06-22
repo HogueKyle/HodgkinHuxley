@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.signal import chirp
+
 
 class Electrode:
     def __init__(self, current, length):
@@ -40,3 +42,13 @@ class Step(Electrode):
                     position = "top"
                 else:
                     position = "bottom"
+class Chirp(Electrode):
+    def __init__(self, length, initialFrequency, endFrequency, bottom, top):
+        self.length = length
+        self.initialFrequency = initialFrequency
+        self.endFrequency = endFrequency
+        self.bottom = bottom
+        self.top = top
+        super().__init__(None, length)
+    def getCurrent(self, t):
+        return abs(chirp(t, self.initialFrequency/2, self.length, self.endFrequency, phi=90)) * self.top
