@@ -2,7 +2,6 @@ import numpy as np
 
 #Define units
 conversionFactor_mToU = 1000
-conversionFactor_sTom = 1000
 
 def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, Vm_NaT, Vm_NaP, Vm_CaT, Vm_CaH, Vm_KDR, Vm_KM, Vm_H, Vh_NaT, Vh_CaT, Vh_CaH, Vh_KDR, Vn_H, km_NaT, km_NaP, km_CaT, km_CaH, km_KDR, km_KM, km_H, kh_NaT, kh_CaT, kh_CaH, kh_KDR, kn_H, tau_m_CaT, tau_m_CaH, tau_m_KDR, tau_m_KM, tau_m_H, tau_h_CaT, tau_h_CaH, tau_h_KDR, tau_n_H, E_Na, E_Ca, E_K, E_L, E_H, C, I_app, voltageRateIncrease, verbose):
     # Unpack
@@ -23,7 +22,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     m_NaP = boltzmann(V0, Vm_NaP, km_NaP)
 
     #Variable time constant
-    tau_h_NaT = 0.2 + 0.007 * np.longdouble(np.exp(np.longdouble(np.exp(-(V0 - 40.6)/51.4))))
+    tau_h_NaT = 0.2 + 0.007 * (np.exp((np.exp(-(V0 - 40.6)/51.4))))
 
     #Currents
     I_NaT = g_NaT * m_NaT**3 * h_NaT0 * (V0 - E_Na)
@@ -37,7 +36,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
 
     #Voltage
     if voltageRateIncrease:
-        dV = ((I_app.getCurrent(t) + I_hold - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L - I_H) / C) * conversionFactor_mToU
+        dV = (I_app.getCurrent(t) + I_hold - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L - I_H) / ( C / conversionFactor_mToU)
     else:
         dV = 0
 
@@ -68,3 +67,7 @@ def boltzmann(V, Vx, kx):
 
 def sphereArea(r):
     return 4 * np.pi * r ** 2
+
+def residuals(x, current, a, b, c, model):
+    vPrime = model.runModel(x[0], current, a, b, c)[10, -1]
+    return (abs(-80) - abs(vPrime))
