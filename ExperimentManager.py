@@ -9,7 +9,8 @@ class ExperimentManager:
     def __init__(self):
         self.test = HogdkinHuxley()
         self.test.setValues_alt()
-        self.I_hold = -0.20956368313672644
+        self.I_hold = -0.20956573344994844
+        # self.I_hold = -0.00020956573344785734
     def run(self, experiment):
         # Optimize for steady state
         match experiment:
@@ -52,10 +53,11 @@ class ExperimentManager:
                 self.test.plotChannelTimeSeries()
             case "Constant":
                 print("Running Constant Current Experiment")
-                current = WhiteNoise(0, 1000)
-                self.test.runModel(self.I_hold, current, True, False, True, False)
-                #topCurrent = 1.5e-7 / sphereArea(0.0028)
-                topCurrent = 50
+                #current = WhiteNoise(0, 1000)
+                #self.test.runModel(self.I_hold, current, True, False, True, False)
+                # topCurrent = 1.5e-7 / sphereArea(0.0028)
+                # topCurrent = 3e-7 / sphereArea(0.0025)
+                topCurrent = 3
                 current = WhiteNoise(topCurrent, 500)
                 self.test.runModel(self.I_hold, current, True, True, True, True)
                 self.test.plotVoltageTimeSeries()

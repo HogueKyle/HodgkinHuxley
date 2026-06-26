@@ -8,6 +8,7 @@ from utils import model, boltzmann, I_NaT_get, I_NaP_get, I_CaT_get, I_CaH_get, 
     I_KM_get, I_L_get, I_H_get
 
 conversionFactor_mToU = 1 #Maybe 1000
+conversionFactor_mToU_C = 1 #Maybe 1000
 
 class HogdkinHuxley:
     def __init__(self):
@@ -123,31 +124,30 @@ class HogdkinHuxley:
     def setValues(self):
         #Units
         # Initialize conductance
-        self.g_NaT = 65.0 / conversionFactor_mToU
-        self.g_NaP = 0.1 / conversionFactor_mToU
-        self.g_CaT = 0.6 / conversionFactor_mToU
-        self.g_CaH = 0.7 / conversionFactor_mToU
-        self.g_KDR = 9.5 / conversionFactor_mToU
-        self.g_KM = 0.8 / conversionFactor_mToU
-        self.g_L = 0.02 / conversionFactor_mToU
-        self.g_H = 0.05 / conversionFactor_mToU
+        self.g_NaT = 65.0
+        self.g_NaP = 0.1
+        self.g_CaT = 0.6
+        self.g_CaH = 0.74
+        self.g_KDR = 9.5
+        self.g_KM = 0.8
+        self.g_L = 0.02
+        self.g_H = 0.05
         # Initialize gating variable
         self.m_NaT_inf = 0
         self.m_NaP_inf = 0
-        self.m_CaT0 = 0.005486594704365255
-        self.m_CaH0 = 2.260443363987366e-06
+        self.m_CaT0 = 0.005499631115330787
+        self.m_CaH0 = 2.2658458242948663e-06
         self.m_KDR0 = 0.0014881270089334075
-        self.m_KM0 = 0.006693236665689997
-        self.m_H0 = 0.1554691454071592
-        self.h_NaT0 = 0.6713104329954209
-        self.h_CaT0 = 0.8537921873675318
-        self.h_CaH0 = 0.9456737145278049
-        self.h_KDR0 = 0.7694232333411584
-        self.n_H0 = 0.024919369791676596
+        self.m_KM0 = 0.0067010649216514805
+        self.m_H0 = 0.15534913916228063
+        self.h_NaT0 = 0.6709528877756887
+        self.h_CaT0 = 0.8536179164156359
+        self.h_CaH0 = 0.9455957087204464
+        self.h_KDR0 = 0.7721798208565878
+        self.n_H0 = 0.024873681844352076
         self.p = 0.85
         # Half activation voltage
         self.Vm_NaT = -37
-        self.Vm_NaT_alt = -60.0
         self.Vm_NaP = -47
         self.Vm_CaT = -54
         self.Vm_CaH = -15
@@ -191,7 +191,7 @@ class HogdkinHuxley:
         # Membrane voltage
         self.V0 = -80
         # Conductance
-        self.C = 1
+        self.C = 1 / conversionFactor_mToU_C
 
     def setValues_alt(self):
         #Units
@@ -219,8 +219,7 @@ class HogdkinHuxley:
         self.n_H0 = 0.024919369791676596
         self.p = 0.85
         # Half activation voltage
-        self.Vm_NaT = -37
-        self.Vm_NaT_alt = -60.0
+        self.Vm_NaT = -60
         self.Vm_NaP = -47
         self.Vm_CaT = -54
         self.Vm_CaH = -15
@@ -264,7 +263,7 @@ class HogdkinHuxley:
         # Membrane voltage
         self.V0 = -80
         # Conductance
-        self.C = 1
+        self.C = 1 / conversionFactor_mToU_C
 
     def updateValues(self, m_CaT0, m_CaH0, m_KDR0, m_KM0, m_H0, h_NaT0, h_CaT0, h_CaH0, h_KDR0, n_H0):
         self.m_CaT0 = m_CaT0
@@ -281,10 +280,10 @@ class HogdkinHuxley:
     def runModel(self, I_hold, I_app, voltageRateIncrease, memory, updateStart, verbose):
         # Prepare ODE run
         start = 0
-        step = 1
-        length = I_app.getLength()
-        t_span = [0, length]
-        self.t_eval = np.arange(start, length, step)
+        step = 0.01
+        self.length = I_app.getLength()
+        t_span = [0, self.length]
+        self.t_eval = np.arange(start, self.length, step)
         self.I_hold = I_hold
         y0_Gates = np.array([self.m_CaT0, self.m_CaH0, self.m_KDR0, self.m_KM0, self.m_H0, self.h_NaT0, self.h_CaT0, self.h_CaH0, self.h_KDR0, self.n_H0, self.V0]).T
         args =[self.I_hold, self.g_NaT, self.g_NaP, self.g_CaT, self.g_CaH, self.g_KDR, self.g_KM, self.g_L, self.g_H, self.p, self.Vm_NaT, self.Vm_NaP, self.Vm_CaT, self.Vm_CaH, self.Vm_KDR, self.Vm_KM, self.Vm_H, self.Vh_NaT, self.Vh_CaT, self.Vh_CaH, self.Vh_KDR, self.Vn_H, self.km_NaT, self.km_NaP, self.km_CaT, self.km_CaH, self.km_KDR, self.km_KM, self.km_H, self.kh_NaT, self.kh_CaT, self.kh_CaH, self.kh_KDR, self.kn_H, self.tau_m_CaT, self.tau_m_CaH, self.tau_m_KDR, self.tau_m_KM, self.tau_m_H, self.tau_h_CaT, self.tau_h_CaH, self.tau_h_KDR, self.tau_n_H, self.E_Na, self.E_Ca, self.E_K, self.E_L, self.E_H, self.C, I_app, voltageRateIncrease, verbose]
@@ -310,7 +309,7 @@ class HogdkinHuxley:
             for i,voltage in enumerate(z[10]):
                 self.t_m_NaT = np.append(self.t_m_NaT, boltzmann(voltage, self.Vm_NaT, self.km_NaT))
                 self.t_m_NaP = np.append(self.t_m_NaP, boltzmann(voltage, self.Vm_NaP, self.km_NaP))
-                self.t_I_NaT = np.append(self.t_I_NaT, I_NaT_get(self.g_NaT, self.t_m_NaT[i], self.t_h_NaT[0], voltage, self.E_Na))
+                self.t_I_NaT = np.append(self.t_I_NaT, I_NaT_get(self.g_NaT, self.t_m_NaT[i], self.t_h_NaT[i], voltage, self.E_Na))
                 self.t_I_NaP = np.append(self.t_I_NaP, I_NaP_get(self.g_NaP, self.t_m_NaP[i], voltage, self.E_Na))
                 self.t_I_CaT = np.append(self.t_I_CaT, I_CaT_get(self.g_CaT, self.t_m_CaT[i], self.t_h_CaT[i], voltage, self.E_Ca))
                 self.t_I_CaH = np.append(self.t_I_CaH, I_CaH_get(self.g_CaH, self.t_m_CaH[i], self.t_h_CaH[i], voltage, self.E_Ca))
@@ -318,6 +317,19 @@ class HogdkinHuxley:
                 self.t_I_KM = np.append(self.t_I_KM, I_KM_get(self.g_KM, self.t_m_KM[i], voltage, self.E_K))
                 self.t_I_L = np.append(self.t_I_L, I_L_get(self.g_L, voltage, self.E_L))
                 self.t_I_H = np.append(self.t_I_H, I_H_get(self.g_H, self.p, self.t_m_H[i], self.t_n_H[i], voltage, self.E_H))
+            print(I_app.getCurrent(I_app.getLength))
+            print(I_hold)
+            print(self.t_I_NaT[-1] + self.t_I_NaP[-1] + self.t_I_CaT[-1] + self.t_I_CaH[-1] + self.t_I_KDR[-1] + self.t_I_KM[-1] + self.t_I_L[-1] + self.t_I_H[-1])
+            print("t_I_NaT " + str(self.t_I_NaT[-1]))
+            print("t_I_NaP " + str(self.t_I_NaP[-1]))
+            print("t_I_CaT " + str(self.t_I_CaT[-1]))
+            print("t_I_CaH " + str(self.t_I_CaH[-1]))
+            print("t_I_KDR " + str(self.t_I_KDR[-1]))
+            print("t_I_KM " + str(self.t_I_KM[-1]))
+            print("t_I_L " + str(self.t_I_L[-1]))
+            print("t_I_H " + str(self.t_I_H[-1]))
+            print("hCaT " + str(self.t_h_CaT[-1]))
+            print("hCaT_INF " + str(boltzmann(z[10][-1], self.Vh_CaT, self.kh_CaT)))
 
         if updateStart:
             #New initial conditions
@@ -336,43 +348,44 @@ class HogdkinHuxley:
         return z
 
     def plotVoltageTimeSeries(self):
-        plt.plot(range(len(self.t_V)), self.t_V)
+        plt.plot(self.t_eval, self.t_V)
         plt.xlabel("Time (ms)")
         plt.ylabel("mV")
         plt.show()
 
     def plotAppliedCurrentTimeSeries(self):
-        plt.plot(range(len(self.t_I_app)), self.t_I_app)
+        plt.plot(self.t_eval, self.t_I_app)
         plt.xlabel("Time (ms)")
         plt.ylabel("Iapp")
         plt.show()
 
     def plotChannelTimeSeries(self):
-        plt.plot(range(len(self.t_m_NaT)), self.t_m_NaT, label="mNaT")
-        plt.plot(range(len(self.t_m_NaP)), self.t_m_NaP, label="mNaP")
-        plt.plot(range(len(self.t_m_CaT)), self.t_m_CaT, label="mCaT")
-        plt.plot(range(len(self.t_m_CaH)), self.t_m_CaH, label="mCaH")
-        plt.plot(range(len(self.t_m_KDR)), self.t_m_KDR, label="mKDR")
-        plt.plot(range(len(self.t_m_KM)), self.t_m_KM, label="mKM")
-        plt.plot(range(len(self.t_h_NaT)), self.t_h_NaT, label="hNaT")
-        plt.plot(range(len(self.t_h_CaT)), self.t_h_CaT, label="hCaT")
-        plt.plot(range(len(self.t_h_CaH)), self.t_h_CaH, label="hCaH")
-        plt.plot(range(len(self.t_h_KDR)), self.t_h_KDR, label="hKDR")
-        plt.plot(range(len(self.t_n_H)), self.t_n_H, label="nH")
+        plt.plot(self.t_eval, self.t_m_NaT, label="mNaT")
+        plt.plot(self.t_eval, self.t_m_NaP, label="mNaP")
+        plt.plot(self.t_eval, self.t_m_CaT, label="mCaT")
+        plt.plot(self.t_eval, self.t_m_CaH, label="mCaH")
+        plt.plot(self.t_eval, self.t_m_KDR, label="mKDR")
+        plt.plot(self.t_eval, self.t_m_KM, label="mKM")
+        plt.plot(self.t_eval, self.t_h_NaT, label="hNaT")
+        plt.plot(self.t_eval, self.t_h_CaT, label="hCaT")
+        plt.plot(self.t_eval, self.t_h_CaH, label="hCaH")
+        plt.plot(self.t_eval, self.t_h_KDR, label="hKDR")
+        plt.plot(self.t_eval, self.t_n_H, label="nH")
         plt.xlabel("Time (ms)")
+        plt.ylabel("Gating variables")
         plt.legend()
         plt.show()
 
     def plotChannelCurrentsTimeSeries(self):
-        plt.plot(range(len(self.t_I_NaT)), -1 * self.t_I_NaT, label="NaT")
-        plt.plot(range(len(self.t_I_NaP)), -1 * self.t_I_NaP, label="NaP")
-        plt.plot(range(len(self.t_I_CaT)), -1 * self.t_I_CaT, label="CaT")
-        plt.plot(range(len(self.t_I_CaH)), -1 * self.t_I_CaH, label="CaH")
-        plt.plot(range(len(self.t_I_KDR)), -1 * self.t_I_KDR, label="KDR")
-        plt.plot(range(len(self.t_I_KM)), -1 * self.t_I_KM, label="KM")
-        plt.plot(range(len(self.t_I_L)), -1 * self.t_I_L, label="L")
-        plt.plot(range(len(self.t_I_H)), -1 * self.t_I_H, label="H")
+        plt.plot(self.t_eval, (self.t_I_NaT), label="NaT")
+        plt.plot(self.t_eval, (self.t_I_NaP), label="NaP")
+        plt.plot(self.t_eval, (self.t_I_CaT), label="CaT")
+        plt.plot(self.t_eval, (self.t_I_CaH), label="CaH")
+        plt.plot(self.t_eval, (self.t_I_KDR), label="KDR")
+        plt.plot(self.t_eval, (self.t_I_KM), label="KM")
+        plt.plot(self.t_eval, (self.t_I_L), label="L")
+        plt.plot(self.t_eval, (self.t_I_H), label="H")
         plt.xlabel("Time (ms)")
-        plt.xlabel("Current (mA)")
+        plt.ylabel("Current (mA)")
         plt.legend()
         plt.show()
