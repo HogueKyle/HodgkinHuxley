@@ -6,27 +6,22 @@ from utils import sphereArea, residuals
 
 
 class ExperimentManager:
-    def __init__(self, type):
-        self.type = type
-    def run(self):
+    def __init__(self):
+        self.test = HogdkinHuxley()
+        self.test.setValues_alt()
+        self.I_hold = -0.20956368313672644
+    def run(self, experiment):
         # Optimize for steady state
-        test = HogdkinHuxley()
-        test.setValues()
-        current = WhiteNoise(0, 1000)
-        I_hold = -2.306727847622885e-06
-        #test.runModel(I_hold, current, True, False, True)
-        match self.type:
+        match experiment:
             case "Optimize":
-                x0 = -2.306727847622885e-06
-                bounds = [-3e-7 / sphereArea(5e-8), 3e-7 / sphereArea(5e-8)]
-                result = least_squares(residuals, x0, bounds=bounds, args=[current, True, False, False, test])
+                print("Optimizing hold current and starting variables")
+                x0 = -5
+                current = WhiteNoise(0, 1000)
+                result = least_squares(residuals, x0, args=[current, True, False, False, False, self.test], bounds=[-5,5], diff_step=0.1, xtol=1e-13) #You changed the scaling for g from 1000 to 1 and this shit has a tiny step size for some reason
                 print("Hold current: " + str(result.x[0]))
-                print(str(result))
-                I_hold = result.x[0]
-                z = test.runModel(I_hold, current, True, True, False)
-                test.plotVoltageTimeSeries()
-                test.plotAppliedCurrentTimeSeries()
-                test.plotChannelTimeSeries()
+                #Update initial gating variable
+                self.I_hold = result.x[0]
+                z = self.test.runModel(self.I_hold, current, True, False, False, False)
                 print("-------")
                 print("m_CaT0 :" + str(z[0, -1]))
                 print("m_CaH0 :" + str(z[1, -1]))
@@ -40,43 +35,38 @@ class ExperimentManager:
                 print("n_H0 :" + str(z[9, -1]))
                 print("V0 :" + str(z[10, -1]))
                 print("-------")
+                self.test.updateValues(z[0, -1], z[1, -1], z[2, -1], z[3, -1], z[4, -1], z[5, -1], z[6, -1], z[7, -1], z[8, -1], z[9, -1])
             case "Step":
                 print("Running Step Experiment")
                 # Run step current
                 topCurrent = 3000
                 # 3e-7 / sphereArea(5e-8)
                 current = WhiteNoise(0, 500)
-                test.runModel(I_hold, current, True, True, True)
+                self.test.runModel(self.I_hold, current, True, True, True, True)
                 current = WhiteNoise(topCurrent, 500)
-                test.runModel(I_hold, current, True, True, True)
+                self.test.runModel(self.I_hold, current, True, True, True, True)
                 current = WhiteNoise(0, 500)
-                test.runModel(I_hold, current, True, True, True)
-                test.plotVoltageTimeSeries()
-                test.plotAppliedCurrentTimeSeries()
-                test.plotChannelTimeSeries()
+                self.test.runModel(self.I_hold, current, True, True, True, True)
+                self.test.plotVoltageTimeSeries()
+                self.test.plotAppliedCurrentTimeSeries()
+                self.test.plotChannelTimeSeries()
             case "Constant":
-                test.runModel(I_hold, current, True, False, True)
                 print("Running Constant Current Experiment")
-                # Run step current
-                #topCurrent = 0.1
-                topCurrent = 1.5e-7 / sphereArea(0.0028)
-                # topCurrent = 1
+                current = WhiteNoise(0, 1000)
+                self.test.runModel(self.I_hold, current, True, False, True, False)
+                #topCurrent = 1.5e-7 / sphereArea(0.0028)
+                topCurrent = 50
                 current = WhiteNoise(topCurrent, 500)
-                test.runModel(I_hold, current, True, True, True)
-                test.plotVoltageTimeSeries()
-                test.plotAppliedCurrentTimeSeries()
-                test.plotChannelTimeSeries()
+                self.test.runModel(self.I_hold, current, True, True, True, True)
+                self.test.plotVoltageTimeSeries()
+                self.test.plotAppliedCurrentTimeSeries()
+                self.test.plotChannelTimeSeries()
+                self.test.plotChannelCurrentsTimeSeries()
             case "Chirp":
                 # Run chirp current
-                topCurrent = 3000
-                # 3e-7 / sphereArea(5e-8)
+                topCurrent = 1.5e-7 / sphereArea(0.0028)
                 current = Chirp(30 * 1000, 0, 15, 0, topCurrent)
-                test.runModel(I_hold, current, True, True, True)
-                test.plotVoltageTimeSeries()
-                test.plotAppliedCurrentTimeSeries()
-                test.plotChannelTimeSeries()
-
-    # def residuals(x, current, a, b, c):
-    #     vPrime = test.runModel(x[0], current, a, b, c)[10, -1]
-    #     print(vPrime)
-    #     return (abs(-80) - abs(vPrime))
+                self.test.runModel(self.I_hold, current, True, True, True, True)
+                self.test.plotVoltageTimeSeries()
+                self.test.plotAppliedCurrentTimeSeries()
+                self.test.plotChannelTimeSeries()

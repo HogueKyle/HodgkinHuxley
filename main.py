@@ -11,7 +11,6 @@ from ExperimentManager import ExperimentManager
 
 
 
-# CoolExperiment = ExperimentManager("Optimize")
-# CoolExperiment.run()
-CoolExperiment = ExperimentManager("Constant")
-CoolExperiment.run()
+CoolExperiment = ExperimentManager()
+# CoolExperiment.run("Optimize")
+CoolExperiment.run("Constant")

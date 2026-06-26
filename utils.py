@@ -22,17 +22,17 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     m_NaP = boltzmann(V0, Vm_NaP, km_NaP)
 
     #Variable time constant
-    tau_h_NaT = 0.2 + 0.007 * (np.exp((np.exp(-(V0 - 40.6)/51.4))))
+    tau_h_NaT = 0.2 + 0.007 * (np.exp(np.exp(-(V0 - 40.6)/51.4)))
 
     #Currents
-    I_NaT = g_NaT * m_NaT**3 * h_NaT0 * (V0 - E_Na)
-    I_NaP = g_NaP * m_NaP * (V0 - E_Na)
-    I_CaT = g_CaT * m_CaT0**2 * h_CaT0 * (V0 - E_Ca)
-    I_CaH = g_CaH * m_CaH0**2 * h_CaH0 * (V0 - E_Ca)
-    I_KDR = g_KDR * m_KDR0 * h_KDR0 * (V0 - E_K)
-    I_KM = g_KM * m_KM0 * (V0 - E_K)
-    I_L = g_L * (V0 - E_L)
-    I_H = g_H * (p * m_H0 + (1 - p) * n_H0) * (V0 - E_H)
+    I_NaT = I_NaT_get(g_NaT, m_NaT, h_NaT0, V0, E_Na)
+    I_NaP = I_NaP_get(g_NaP, m_NaP, V0, E_Na)
+    I_CaT = I_CaT_get(g_CaT, m_CaT0, h_CaT0, V0, E_Ca)
+    I_CaH = I_CaH_get(g_CaH, m_CaH0, h_CaH0, V0, E_Ca)
+    I_KDR = I_KDR_get(g_KDR, m_KDR0, h_KDR0, V0, E_K)
+    I_KM = I_KM_get(g_KM, m_KM0, V0, E_K)
+    I_L = I_L_get(g_L, V0, E_L)
+    I_H = I_H_get(g_H, p, m_H0, n_H0, V0, E_H)
 
     #Voltage
     if voltageRateIncrease:
@@ -65,9 +65,36 @@ def gateDerivative(V, Vx, kx, x, tau):
 def boltzmann(V, Vx, kx):
     return 1 / (1 + np.exp(-(V - Vx) / kx))
 
+def I_NaT_get(g_NaT, m_NaT, h_NaT0, V0, E_Na):
+    return g_NaT * m_NaT**3 * h_NaT0 * (V0 - E_Na)
+
+def I_NaP_get(g_NaP, m_NaP, V0, E_Na):
+    return g_NaP * m_NaP * (V0 - E_Na)
+
+def I_CaT_get(g_CaT, m_CaT0, h_CaT0, V0, E_Ca):
+    return g_CaT * m_CaT0**2 * h_CaT0 * (V0 - E_Ca)
+
+def I_CaH_get(g_CaH, m_CaH0, h_CaH0, V0, E_Ca):
+    return g_CaH * m_CaH0**2 * h_CaH0 * (V0 - E_Ca)
+
+def I_KDR_get(g_KDR, m_KDR0, h_KDR0, V0, E_K):
+    return g_KDR * m_KDR0 * h_KDR0 * (V0 - E_K)
+
+def I_KM_get(g_KM, m_KM0, V0, E_K):
+    return g_KM * m_KM0 * (V0 - E_K)
+
+def I_L_get(g_L, V0, E_L):
+    return g_L * (V0 - E_L)
+
+def I_H_get(g_H, p, m_H0, n_H0, V0, E_H):
+    return g_H * (p * m_H0 + (1 - p) * n_H0) * (V0 - E_H)
+
+
+
 def sphereArea(r):
     return 4 * np.pi * r ** 2
 
-def residuals(x, current, a, b, c, model):
-    vPrime = model.runModel(x[0], current, a, b, c)[10, -1]
-    return (abs(-80) - abs(vPrime))
+def residuals(x, current, a, b, c, d, model):
+    vPrime = model.runModel(x[0], current, a, b, c, d)[10, -1]
+    print("Voltage " + str(vPrime) + " , Current " + str(x[0]) + " , Cost " + str(abs(abs(-80) - abs(vPrime))))
+    return (abs(abs(-80) - abs(vPrime)))

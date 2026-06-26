@@ -4,8 +4,10 @@ import numpy as np
 from fontTools.merge.util import first
 from scipy.integrate import solve_ivp
 from matplotlib import pyplot as plt
-from utils import model, boltzmann, conversionFactor_mToU
+from utils import model, boltzmann, I_NaT_get, I_NaP_get, I_CaT_get, I_CaH_get, I_KDR_get, \
+    I_KM_get, I_L_get, I_H_get
 
+conversionFactor_mToU = 1 #Maybe 1000
 
 class HogdkinHuxley:
     def __init__(self):
@@ -108,6 +110,14 @@ class HogdkinHuxley:
         self.t_eval = np.array([])
         self.t_m_NaT = np.array([])
         self.t_m_NaP = np.array([])
+        self.t_I_NaT = np.array([])
+        self.t_I_NaP = np.array([])
+        self.t_I_CaT = np.array([])
+        self.t_I_CaH = np.array([])
+        self.t_I_KDR = np.array([])
+        self.t_I_KM = np.array([])
+        self.t_I_L = np.array([])
+        self.t_I_H = np.array([])
 
 
     def setValues(self):
@@ -182,6 +192,7 @@ class HogdkinHuxley:
         self.V0 = -80
         # Conductance
         self.C = 1
+
     def setValues_alt(self):
         #Units
         # Initialize conductance
@@ -255,7 +266,19 @@ class HogdkinHuxley:
         # Conductance
         self.C = 1
 
-    def runModel(self, I_hold, I_app, voltageRateIncrease, memory, verbose):
+    def updateValues(self, m_CaT0, m_CaH0, m_KDR0, m_KM0, m_H0, h_NaT0, h_CaT0, h_CaH0, h_KDR0, n_H0):
+        self.m_CaT0 = m_CaT0
+        self.m_CaH0 = m_CaH0
+        self.m_KDR0 = m_KDR0
+        self.m_KM0 = m_KM0
+        self.m_H0 = m_H0
+        self.h_NaT0 = h_NaT0
+        self.h_CaT0 = h_CaT0
+        self.h_CaH0 = h_CaH0
+        self.h_KDR0 = h_KDR0
+        self.n_H0 = n_H0
+
+    def runModel(self, I_hold, I_app, voltageRateIncrease, memory, updateStart, verbose):
         # Prepare ODE run
         start = 0
         step = 1
@@ -267,7 +290,7 @@ class HogdkinHuxley:
         args =[self.I_hold, self.g_NaT, self.g_NaP, self.g_CaT, self.g_CaH, self.g_KDR, self.g_KM, self.g_L, self.g_H, self.p, self.Vm_NaT, self.Vm_NaP, self.Vm_CaT, self.Vm_CaH, self.Vm_KDR, self.Vm_KM, self.Vm_H, self.Vh_NaT, self.Vh_CaT, self.Vh_CaH, self.Vh_KDR, self.Vn_H, self.km_NaT, self.km_NaP, self.km_CaT, self.km_CaH, self.km_KDR, self.km_KM, self.km_H, self.kh_NaT, self.kh_CaT, self.kh_CaH, self.kh_KDR, self.kn_H, self.tau_m_CaT, self.tau_m_CaH, self.tau_m_KDR, self.tau_m_KM, self.tau_m_H, self.tau_h_CaT, self.tau_h_CaH, self.tau_h_KDR, self.tau_n_H, self.E_Na, self.E_Ca, self.E_K, self.E_L, self.E_H, self.C, I_app, voltageRateIncrease, verbose]
 
         # Run ODE for gating  , method="DOP853", rtol=1e-10, atol=1e-13
-        z = solve_ivp(model, t_span, y0_Gates, t_eval=self.t_eval, args=args, method="LSODA", max_step = 0.005, rtol=1e-13, atol=1e-13).y
+        z = solve_ivp(model, t_span, y0_Gates, t_eval=self.t_eval, args=args, method="LSODA", max_step = 0.005, rtol=1e-13, atol=1e-8).y
         #Unpack
         if memory: #Save timeseries
             #Time series
@@ -284,22 +307,31 @@ class HogdkinHuxley:
             self.t_V = np.append(self.t_V, z[10])
             self.t_I_app = np.append(self.t_I_app, I_app.getMultipleCurrents(self.t_eval))
 
-            for voltage in z[10]:
+            for i,voltage in enumerate(z[10]):
                 self.t_m_NaT = np.append(self.t_m_NaT, boltzmann(voltage, self.Vm_NaT, self.km_NaT))
                 self.t_m_NaP = np.append(self.t_m_NaP, boltzmann(voltage, self.Vm_NaP, self.km_NaP))
+                self.t_I_NaT = np.append(self.t_I_NaT, I_NaT_get(self.g_NaT, self.t_m_NaT[i], self.t_h_NaT[0], voltage, self.E_Na))
+                self.t_I_NaP = np.append(self.t_I_NaP, I_NaP_get(self.g_NaP, self.t_m_NaP[i], voltage, self.E_Na))
+                self.t_I_CaT = np.append(self.t_I_CaT, I_CaT_get(self.g_CaT, self.t_m_CaT[i], self.t_h_CaT[i], voltage, self.E_Ca))
+                self.t_I_CaH = np.append(self.t_I_CaH, I_CaH_get(self.g_CaH, self.t_m_CaH[i], self.t_h_CaH[i], voltage, self.E_Ca))
+                self.t_I_KDR = np.append(self.t_I_KDR, I_KDR_get(self.g_KDR, self.t_m_KDR[i], self.t_h_KDR[i], voltage, self.E_K))
+                self.t_I_KM = np.append(self.t_I_KM, I_KM_get(self.g_KM, self.t_m_KM[i], voltage, self.E_K))
+                self.t_I_L = np.append(self.t_I_L, I_L_get(self.g_L, voltage, self.E_L))
+                self.t_I_H = np.append(self.t_I_H, I_H_get(self.g_H, self.p, self.t_m_H[i], self.t_n_H[i], voltage, self.E_H))
 
-        #New initial conditions
-        self.m_CaT0 = z[0, -1]
-        self.m_CaH0 = z[1, -1]
-        self.m_KDR0 = z[2, -1]
-        self.m_KM0 = z[3, -1]
-        self.m_H0 = z[4, -1]
-        self.h_NaT0 = z[5, -1]
-        self.h_CaT0 = z[6, -1]
-        self.h_CaH0 = z[7, -1]
-        self.h_KDR0 = z[8, -1]
-        self.n_H0 = z[9, -1]
-        self.V0 = z[10, -1]
+        if updateStart:
+            #New initial conditions
+            self.m_CaT0 = z[0, -1]
+            self.m_CaH0 = z[1, -1]
+            self.m_KDR0 = z[2, -1]
+            self.m_KM0 = z[3, -1]
+            self.m_H0 = z[4, -1]
+            self.h_NaT0 = z[5, -1]
+            self.h_CaT0 = z[6, -1]
+            self.h_CaH0 = z[7, -1]
+            self.h_KDR0 = z[8, -1]
+            self.n_H0 = z[9, -1]
+            self.V0 = z[10, -1]
 
         return z
 
@@ -328,5 +360,19 @@ class HogdkinHuxley:
         plt.plot(range(len(self.t_h_KDR)), self.t_h_KDR, label="hKDR")
         plt.plot(range(len(self.t_n_H)), self.t_n_H, label="nH")
         plt.xlabel("Time (ms)")
+        plt.legend()
+        plt.show()
+
+    def plotChannelCurrentsTimeSeries(self):
+        plt.plot(range(len(self.t_I_NaT)), -1 * self.t_I_NaT, label="NaT")
+        plt.plot(range(len(self.t_I_NaP)), -1 * self.t_I_NaP, label="NaP")
+        plt.plot(range(len(self.t_I_CaT)), -1 * self.t_I_CaT, label="CaT")
+        plt.plot(range(len(self.t_I_CaH)), -1 * self.t_I_CaH, label="CaH")
+        plt.plot(range(len(self.t_I_KDR)), -1 * self.t_I_KDR, label="KDR")
+        plt.plot(range(len(self.t_I_KM)), -1 * self.t_I_KM, label="KM")
+        plt.plot(range(len(self.t_I_L)), -1 * self.t_I_L, label="L")
+        plt.plot(range(len(self.t_I_H)), -1 * self.t_I_H, label="H")
+        plt.xlabel("Time (ms)")
+        plt.xlabel("Current (mA)")
         plt.legend()
         plt.show()
