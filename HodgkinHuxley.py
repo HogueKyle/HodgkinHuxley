@@ -369,7 +369,6 @@ class HogdkinHuxley:
         plt.xlabel("Time (ms)")
         plt.ylabel("Current (mA/cm^2)")
         plt.title("Applied Current")
-        "this is a test"
         plt.savefig(saveLocation + str(saveNumber) + ".Applied Current Timeseries" + str(saveNumber) + ".png")
         plt.show()
 
