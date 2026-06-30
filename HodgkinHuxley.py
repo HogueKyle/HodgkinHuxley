@@ -289,7 +289,10 @@ class HogdkinHuxley:
         y0_Gates = np.array([self.m_CaT0, self.m_CaH0, self.m_KDR0, self.m_KM0, self.m_H0, self.h_NaT0, self.h_CaT0, self.h_CaH0, self.h_KDR0, self.n_H0, self.V0]).T
         args =[self.I_hold, self.g_NaT, self.g_NaP, self.g_CaT, self.g_CaH, self.g_KDR, self.g_KM, self.g_L, self.g_H, self.p, self.Vm_NaT, self.Vm_NaP, self.Vm_CaT, self.Vm_CaH, self.Vm_KDR, self.Vm_KM, self.Vm_H, self.Vh_NaT, self.Vh_CaT, self.Vh_CaH, self.Vh_KDR, self.Vn_H, self.km_NaT, self.km_NaP, self.km_CaT, self.km_CaH, self.km_KDR, self.km_KM, self.km_H, self.kh_NaT, self.kh_CaT, self.kh_CaH, self.kh_KDR, self.kn_H, self.tau_m_CaT, self.tau_m_CaH, self.tau_m_KDR, self.tau_m_KM, self.tau_m_H, self.tau_h_CaT, self.tau_h_CaH, self.tau_h_KDR, self.tau_n_H, self.E_Na, self.E_Ca, self.E_K, self.E_L, self.E_H, self.C, I_app, voltageRateIncrease, verbose]
         # Run ODE for gating  , method="DOP853", rtol=1e-10, atol=1e-13
-        z = solve_ivp(model, t_span, y0_Gates, t_eval=self.t_eval, args=args, method="LSODA", max_step = 0.005, rtol=1e-13, atol=1e-8).y
+        ODEresults = solve_ivp(model, t_span, y0_Gates, t_eval=self.t_eval, args=args, method="LSODA", max_step = 0.005, rtol=1e-13, atol=1e-8)
+        z = ODEresults.y
+        if verbose:
+            print(ODEresults.message)
         #Unpack
         if memory: #Save timeseries
             if verbose:
@@ -356,13 +359,15 @@ class HogdkinHuxley:
 
         return z
 
-    def plotVoltageTimeSeries(self, saveLocation, saveNumber):
+    def plotVoltageTimeSeries(self, saveLocation, saveNumber, save = True, show = True):
         plt.plot(self.final_t_eval, self.t_V)
         plt.xlabel("Time (ms)")
         plt.ylabel("mV")
         plt.title("Voltage Trace")
-        plt.savefig(saveLocation + str(saveNumber) + ".Voltage Trace" + str(saveNumber) + ".png")
-        plt.show()
+        if save:
+            plt.savefig(saveLocation + str(saveNumber) + ".Voltage Trace" + str(saveNumber) + ".png")
+        if show:
+            plt.show()
 
     def plotAppliedCurrentTimeSeries(self, saveLocation, saveNumber):
         plt.plot(self.final_t_eval, self.t_I_app)

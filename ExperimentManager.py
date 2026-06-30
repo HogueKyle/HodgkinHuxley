@@ -1,3 +1,4 @@
+import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import least_squares
 
@@ -78,6 +79,23 @@ class ExperimentManager:
                 current = Chirp(20 * 1000, topCurrent)
                 self.neuron.runModel(self.I_hold, current, True, True, True, True, stepSize=0.1)
                 self.plotingSuite("Chirp Current 100pA")
+            case "PermutationTesting":
+                #Create array of values to permute through. Starting with tau_m_CaT which has a default value of 2.
+                permutationValues = np.linspace(0.01, 50, 50)
+                for permutationValue in permutationValues:
+                    self.neuron = HogdkinHuxley()
+                    self.neuron.setValues_alt()
+                    self.I_hold = self.starting_I_hold
+                    self.neuron.tau_m_CaT = permutationValue
+                    #Get rid of transient
+                    current = WhiteNoise(0, 1000)
+                    self.neuron.runModel(self.I_hold, current, True, False, True, True)
+                    #Run model
+                    current = WhiteNoise(0, 500)
+                    self.neuron.runModel(self.I_hold, current, True, True, True, True)
+                    self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(), False, False)
+                plt.savefig(self.saveLocation + str(self.getPlotNumber()) + ".Channel Current Timeseries" + str(self.getPlotNumber()) + ".png")
+                plt.show()
         self.experimentsRun += 1
     def plotingSuite(self, text):
         print("Ploting preparation")
