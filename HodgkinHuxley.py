@@ -119,7 +119,8 @@ class HogdkinHuxley:
         self.t_I_KM = np.array([])
         self.t_I_L = np.array([])
         self.t_I_H = np.array([])
-
+        self.length_tracker = np.array([])
+        self.final_t_eval = np.array([])
 
     def setValues(self):
         #Units
@@ -277,21 +278,22 @@ class HogdkinHuxley:
         self.h_KDR0 = h_KDR0
         self.n_H0 = n_H0
 
-    def runModel(self, I_hold, I_app, voltageRateIncrease, memory, updateStart, verbose):
+    def runModel(self, I_hold, I_app, voltageRateIncrease, memory, updateStart, verbose, stepSize = 0.01):
         # Prepare ODE run
         start = 0
-        step = 0.01
+        self.step = stepSize
         self.length = I_app.getLength()
         t_span = [0, self.length]
-        self.t_eval = np.arange(start, self.length, step)
+        self.t_eval = np.arange(start, self.length, self.step)
         self.I_hold = I_hold
         y0_Gates = np.array([self.m_CaT0, self.m_CaH0, self.m_KDR0, self.m_KM0, self.m_H0, self.h_NaT0, self.h_CaT0, self.h_CaH0, self.h_KDR0, self.n_H0, self.V0]).T
         args =[self.I_hold, self.g_NaT, self.g_NaP, self.g_CaT, self.g_CaH, self.g_KDR, self.g_KM, self.g_L, self.g_H, self.p, self.Vm_NaT, self.Vm_NaP, self.Vm_CaT, self.Vm_CaH, self.Vm_KDR, self.Vm_KM, self.Vm_H, self.Vh_NaT, self.Vh_CaT, self.Vh_CaH, self.Vh_KDR, self.Vn_H, self.km_NaT, self.km_NaP, self.km_CaT, self.km_CaH, self.km_KDR, self.km_KM, self.km_H, self.kh_NaT, self.kh_CaT, self.kh_CaH, self.kh_KDR, self.kn_H, self.tau_m_CaT, self.tau_m_CaH, self.tau_m_KDR, self.tau_m_KM, self.tau_m_H, self.tau_h_CaT, self.tau_h_CaH, self.tau_h_KDR, self.tau_n_H, self.E_Na, self.E_Ca, self.E_K, self.E_L, self.E_H, self.C, I_app, voltageRateIncrease, verbose]
-
         # Run ODE for gating  , method="DOP853", rtol=1e-10, atol=1e-13
         z = solve_ivp(model, t_span, y0_Gates, t_eval=self.t_eval, args=args, method="LSODA", max_step = 0.005, rtol=1e-13, atol=1e-8).y
         #Unpack
         if memory: #Save timeseries
+            if verbose:
+                print("Saving ODE time series")
             #Time series
             self.t_m_CaT = np.append(self.t_m_CaT, z[0])
             self.t_m_CaH = np.append(self.t_m_CaH, z[1])
@@ -306,6 +308,8 @@ class HogdkinHuxley:
             self.t_V = np.append(self.t_V, z[10])
             self.t_I_app = np.append(self.t_I_app, I_app.getMultipleCurrents(self.t_eval))
 
+            if verbose:
+                print("Deriving time series")
             for i,voltage in enumerate(z[10]):
                 self.t_m_NaT = np.append(self.t_m_NaT, boltzmann(voltage, self.Vm_NaT, self.km_NaT))
                 self.t_m_NaP = np.append(self.t_m_NaP, boltzmann(voltage, self.Vm_NaP, self.km_NaP))
@@ -317,21 +321,26 @@ class HogdkinHuxley:
                 self.t_I_KM = np.append(self.t_I_KM, I_KM_get(self.g_KM, self.t_m_KM[i], voltage, self.E_K))
                 self.t_I_L = np.append(self.t_I_L, I_L_get(self.g_L, voltage, self.E_L))
                 self.t_I_H = np.append(self.t_I_H, I_H_get(self.g_H, self.p, self.t_m_H[i], self.t_n_H[i], voltage, self.E_H))
-            print(I_app.getCurrent(I_app.getLength))
-            print(I_hold)
-            print(self.t_I_NaT[-1] + self.t_I_NaP[-1] + self.t_I_CaT[-1] + self.t_I_CaH[-1] + self.t_I_KDR[-1] + self.t_I_KM[-1] + self.t_I_L[-1] + self.t_I_H[-1])
-            print("t_I_NaT " + str(self.t_I_NaT[-1]))
-            print("t_I_NaP " + str(self.t_I_NaP[-1]))
-            print("t_I_CaT " + str(self.t_I_CaT[-1]))
-            print("t_I_CaH " + str(self.t_I_CaH[-1]))
-            print("t_I_KDR " + str(self.t_I_KDR[-1]))
-            print("t_I_KM " + str(self.t_I_KM[-1]))
-            print("t_I_L " + str(self.t_I_L[-1]))
-            print("t_I_H " + str(self.t_I_H[-1]))
-            print("hCaT " + str(self.t_h_CaT[-1]))
-            print("hCaT_INF " + str(boltzmann(z[10][-1], self.Vh_CaT, self.kh_CaT)))
+            # print(I_app.getCurrent(I_app.getLength))
+            # print(I_hold)
+            # print(self.t_I_NaT[-1] + self.t_I_NaP[-1] + self.t_I_CaT[-1] + self.t_I_CaH[-1] + self.t_I_KDR[-1] + self.t_I_KM[-1] + self.t_I_L[-1] + self.t_I_H[-1])
+            # print("t_I_NaT " + str(self.t_I_NaT[-1]))
+            # print("t_I_NaP " + str(self.t_I_NaP[-1]))
+            # print("t_I_CaT " + str(self.t_I_CaT[-1]))
+            # print("t_I_CaH " + str(self.t_I_CaH[-1]))
+            # print("t_I_KDR " + str(self.t_I_KDR[-1]))
+            # print("t_I_KM " + str(self.t_I_KM[-1]))
+            # print("t_I_L " + str(self.t_I_L[-1]))
+            # print("t_I_H " + str(self.t_I_H[-1]))
+            # print("hCaT " + str(self.t_h_CaT[-1]))
+            # print("hCaT_INF " + str(boltzmann(z[10][-1], self.Vh_CaT, self.kh_CaT)))
+
+            #Deal with t_eval
+            self.length_tracker = np.append(self.length_tracker,self.length)
 
         if updateStart:
+            if verbose:
+                print("Updating starting conditions")
             #New initial conditions
             self.m_CaT0 = z[0, -1]
             self.m_CaH0 = z[1, -1]
@@ -347,45 +356,56 @@ class HogdkinHuxley:
 
         return z
 
-    def plotVoltageTimeSeries(self):
-        plt.plot(self.t_eval, self.t_V)
+    def plotVoltageTimeSeries(self, saveLocation, saveNumber):
+        plt.plot(self.final_t_eval, self.t_V)
         plt.xlabel("Time (ms)")
         plt.ylabel("mV")
+        plt.title("Voltage Trace")
+        plt.savefig(saveLocation + str(saveNumber) + ".Voltage Trace" + str(saveNumber) + ".png")
         plt.show()
 
-    def plotAppliedCurrentTimeSeries(self):
-        plt.plot(self.t_eval, self.t_I_app)
+    def plotAppliedCurrentTimeSeries(self, saveLocation, saveNumber):
+        plt.plot(self.final_t_eval, self.t_I_app)
         plt.xlabel("Time (ms)")
-        plt.ylabel("Iapp")
+        plt.ylabel("Iapp (mA/cm^2)")
+        plt.title("Applied Current")
+        plt.savefig(saveLocation + str(saveNumber) + ".Applied Current Timeseries" + str(saveNumber) + ".png")
         plt.show()
 
-    def plotChannelTimeSeries(self):
-        plt.plot(self.t_eval, self.t_m_NaT, label="mNaT")
-        plt.plot(self.t_eval, self.t_m_NaP, label="mNaP")
-        plt.plot(self.t_eval, self.t_m_CaT, label="mCaT")
-        plt.plot(self.t_eval, self.t_m_CaH, label="mCaH")
-        plt.plot(self.t_eval, self.t_m_KDR, label="mKDR")
-        plt.plot(self.t_eval, self.t_m_KM, label="mKM")
-        plt.plot(self.t_eval, self.t_h_NaT, label="hNaT")
-        plt.plot(self.t_eval, self.t_h_CaT, label="hCaT")
-        plt.plot(self.t_eval, self.t_h_CaH, label="hCaH")
-        plt.plot(self.t_eval, self.t_h_KDR, label="hKDR")
-        plt.plot(self.t_eval, self.t_n_H, label="nH")
+    def plotChannelTimeSeries(self, saveLocation, saveNumber):
+        plt.plot(self.final_t_eval, self.t_m_NaT, label="mNaT")
+        plt.plot(self.final_t_eval, self.t_m_NaP, label="mNaP")
+        plt.plot(self.final_t_eval, self.t_m_CaT, label="mCaT")
+        plt.plot(self.final_t_eval, self.t_m_CaH, label="mCaH")
+        plt.plot(self.final_t_eval, self.t_m_KDR, label="mKDR")
+        plt.plot(self.final_t_eval, self.t_m_KM, label="mKM")
+        plt.plot(self.final_t_eval, self.t_h_NaT, label="hNaT")
+        plt.plot(self.final_t_eval, self.t_h_CaT, label="hCaT")
+        plt.plot(self.final_t_eval, self.t_h_CaH, label="hCaH")
+        plt.plot(self.final_t_eval, self.t_h_KDR, label="hKDR")
+        plt.plot(self.final_t_eval, self.t_n_H, label="nH")
         plt.xlabel("Time (ms)")
         plt.ylabel("Gating variables")
-        plt.legend()
+        plt.title("Gating Variables")
+        plt.legend(loc="upper right")
+        plt.savefig(saveLocation + str(saveNumber) + ".Gating Variable Timeseries" + str(saveNumber) + ".png")
         plt.show()
 
-    def plotChannelCurrentsTimeSeries(self):
-        plt.plot(self.t_eval, (self.t_I_NaT), label="NaT")
-        plt.plot(self.t_eval, (self.t_I_NaP), label="NaP")
-        plt.plot(self.t_eval, (self.t_I_CaT), label="CaT")
-        plt.plot(self.t_eval, (self.t_I_CaH), label="CaH")
-        plt.plot(self.t_eval, (self.t_I_KDR), label="KDR")
-        plt.plot(self.t_eval, (self.t_I_KM), label="KM")
-        plt.plot(self.t_eval, (self.t_I_L), label="L")
-        plt.plot(self.t_eval, (self.t_I_H), label="H")
+    def plotChannelCurrentsTimeSeries(self, saveLocation, saveNumber):
+        plt.plot(self.final_t_eval, self.t_I_NaT, label="NaT")
+        plt.plot(self.final_t_eval, self.t_I_NaP, label="NaP")
+        plt.plot(self.final_t_eval, self.t_I_CaT, label="CaT")
+        plt.plot(self.final_t_eval, self.t_I_CaH, label="CaH")
+        plt.plot(self.final_t_eval, self.t_I_KDR, label="KDR")
+        plt.plot(self.final_t_eval, self.t_I_KM, label="KM")
+        plt.plot(self.final_t_eval, self.t_I_L, label="L")
+        plt.plot(self.final_t_eval, self.t_I_H, label="H")
         plt.xlabel("Time (ms)")
         plt.ylabel("Current (mA)")
-        plt.legend()
+        plt.legend(loc="upper right")
+        plt.title("Channel Currents")
+        plt.savefig(saveLocation + str(saveNumber) + ".Channel Current Timeseries" + str(saveNumber) + ".png")
         plt.show()
+
+    def prepareToPlot(self):
+        self.final_t_eval = np.arange(0, self.length_tracker.sum(), self.step)

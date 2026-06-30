@@ -43,12 +43,10 @@ class Step(Electrode):
                 else:
                     position = "bottom"
 class Chirp(Electrode):
-    def __init__(self, length, initialFrequency, endFrequency, bottom, top):
+    def __init__(self, length, top):
         self.length = length
-        self.initialFrequency = initialFrequency
-        self.endFrequency = endFrequency
-        self.bottom = bottom
         self.top = top
+        self.scalingFactor = 1000
         super().__init__(None, length)
     def getCurrent(self, t):
-        return abs(chirp(t, self.initialFrequency/2, self.length, self.endFrequency, phi=90)) * self.top
+        return abs(chirp(t, 0, self.length,15/(self.scalingFactor * 2), method='linear', phi=90)) * self.top

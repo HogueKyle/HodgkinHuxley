@@ -14,3 +14,7 @@ from ExperimentManager import ExperimentManager
 CoolExperiment = ExperimentManager()
 # CoolExperiment.run("Optimize")
 CoolExperiment.run("Constant")
+CoolExperiment.run("Restart")
+CoolExperiment.run("Step")
+CoolExperiment.run("Restart")
+CoolExperiment.run("Chirp")
