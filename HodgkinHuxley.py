@@ -401,7 +401,7 @@ class HogdkinHuxley:
         plt.plot(self.final_t_eval, self.t_I_L, label="L")
         plt.plot(self.final_t_eval, self.t_I_H, label="H")
         plt.xlabel("Time (ms)")
-        plt.ylabel("Current (mA)")
+        plt.ylabel("Current (mA/cm^2)")
         plt.legend(loc="upper right")
         plt.title("Channel Currents")
         plt.savefig(saveLocation + str(saveNumber) + ".Channel Current Timeseries" + str(saveNumber) + ".png")
