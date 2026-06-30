@@ -367,7 +367,7 @@ class HogdkinHuxley:
     def plotAppliedCurrentTimeSeries(self, saveLocation, saveNumber):
         plt.plot(self.final_t_eval, self.t_I_app)
         plt.xlabel("Time (ms)")
-        plt.ylabel("Iapp (mA/cm^2)")
+        plt.ylabel("Current (mA/cm^2)")
         plt.title("Applied Current")
         plt.savefig(saveLocation + str(saveNumber) + ".Applied Current Timeseries" + str(saveNumber) + ".png")
         plt.show()
