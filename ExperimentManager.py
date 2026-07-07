@@ -49,7 +49,7 @@ class ExperimentManager:
             case "Step":
                 print("Running Step Experiment")
                 # Run step current
-                topCurrent = 1
+                topCurrent = 2
                 current = WhiteNoise(0, 1000)
                 self.neuron.runModel(self.I_hold, current, True, False, True, True)
                 current = WhiteNoise(0, 500)
@@ -58,44 +58,47 @@ class ExperimentManager:
                 self.neuron.runModel(self.I_hold, current, True, True, True, True)
                 current = WhiteNoise(0, 500)
                 self.neuron.runModel(self.I_hold, current, True, True, True, True)
-                self.plotingSuite("Step Current 100pA for 500mS")
+                self.plotingSuite("Step Current 200pA for 500mS")
             case "Constant":
                 print("Running Constant Current Experiment")
                 #current = WhiteNoise(0, 1000)
                 #self.neuron.runModel(self.I_hold, current, True, False, True, False)
-                # topCurrent = 1.5e-7 / sphereArea(0.0028)
-                # topCurrent = 3e-7 / sphereArea(0.0025)
-                topCurrent = 1 #2 and 3
+                # topCurrent =  1.5e-7 / sphereArea(0.0028)
+                # topCurrent =  3e-7 / sphereArea(0.0025)
+                topCurrent = 2 #2 and 3
                 current = WhiteNoise(0, 1000)
                 self.neuron.runModel(self.I_hold, current, True, False, True, True)
                 current = WhiteNoise(topCurrent, 500)
                 self.neuron.runModel(self.I_hold, current, True, True, True, True)
-                self.plotingSuite("Constant Current 100pA")
+                self.plotingSuite("Constant Current 200pA")
             case "Chirp":
                 # Run chirp current
-                topCurrent = 1
+                topCurrent = 2
                 current = WhiteNoise(0, 1000)
                 self.neuron.runModel(self.I_hold, current, True, False, True, True)
                 current = Chirp(20 * 1000, topCurrent)
-                self.neuron.runModel(self.I_hold, current, True, True, True, True, stepSize=0.1)
-                self.plotingSuite("Chirp Current 100pA")
+                self.neuron.runModel(self.I_hold, current, True, True, True, True) #add step size 0.01
+                self.plotingSuite("Chirp Current 200pA")
             case "PermutationTesting":
                 #Create array of values to permute through. Starting with tau_m_CaT which has a default value of 2.
-                permutationValues = np.linspace(0.01, 50, 50)
+                topCurrent = 1
+                permutationValues = self.generateValues(75)
                 for permutationValue in permutationValues:
+                    print(permutationValue)
                     self.neuron = HogdkinHuxley()
                     self.neuron.setValues_alt()
                     self.I_hold = self.starting_I_hold
-                    self.neuron.tau_m_CaT = permutationValue
+                    self.neuron.tau_m_KM = permutationValue #Needs to be changed back
                     #Get rid of transient
                     current = WhiteNoise(0, 1000)
-                    self.neuron.runModel(self.I_hold, current, True, False, True, True)
+                    self.neuron.runModel(self.I_hold, current, True, False, True, False)
                     #Run model
-                    current = WhiteNoise(0, 500)
-                    self.neuron.runModel(self.I_hold, current, True, True, True, True)
-                    self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(), False, False)
-                plt.savefig(self.saveLocation + str(self.getPlotNumber()) + ".Channel Current Timeseries" + str(self.getPlotNumber()) + ".png")
-                plt.show()
+                    current = WhiteNoise(topCurrent, 500*10)
+                    self.neuron.runModel(self.I_hold, current, True, True, True, False)
+                    self.neuron.prepareToPlot()
+                    self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),False, True, "Varying kn_H " + str(permutationValue))
+                #plt.savefig(self.saveLocation + str(self.getPlotNumber()) + ".Channel Current Timeseries" + str(self.getPlotNumber()) + ".png")
+                #plt.show()
         self.experimentsRun += 1
     def plotingSuite(self, text):
         print("Ploting preparation")
@@ -119,3 +122,12 @@ class ExperimentManager:
 
     def getPlotNumber(self):
         return self.experimentsRun + 1
+
+    def generateValues(self, mean):
+        #Assume twenty plots and 20% on each side
+        numberOfValues = 40
+        percentagePerSide = 0.70#0.2
+        distanceFromMean = percentagePerSide * mean
+        lowerBound = mean - distanceFromMean
+        upperBound = mean + distanceFromMean
+        return np.linspace(lowerBound, upperBound, numberOfValues)

@@ -359,13 +359,15 @@ class HogdkinHuxley:
 
         return z
 
-    def plotVoltageTimeSeries(self, saveLocation, saveNumber, save = True, show = True):
+    def plotVoltageTimeSeries(self, saveLocation, saveNumber, save = True, show = True, additionalText=""):
         plt.plot(self.final_t_eval, self.t_V)
         plt.xlabel("Time (ms)")
         plt.ylabel("mV")
-        plt.title("Voltage Trace")
+        if additionalText != "":
+            additionalText = " " + additionalText
+        plt.title("Voltage Trace" + additionalText)
         if save:
-            plt.savefig(saveLocation + str(saveNumber) + ".Voltage Trace" + str(saveNumber) + ".png")
+            plt.savefig(saveLocation + str(saveNumber) + ".Voltage Trace" + ".png")
         if show:
             plt.show()
 
@@ -374,7 +376,7 @@ class HogdkinHuxley:
         plt.xlabel("Time (ms)")
         plt.ylabel("Current (mA/cm^2)")
         plt.title("Applied Current")
-        plt.savefig(saveLocation + str(saveNumber) + ".Applied Current Timeseries" + str(saveNumber) + ".png")
+        plt.savefig(saveLocation + str(saveNumber) + ".Applied Current Timeseries" + ".png")
         plt.show()
 
     def plotChannelTimeSeries(self, saveLocation, saveNumber):
@@ -393,7 +395,7 @@ class HogdkinHuxley:
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        plt.savefig(saveLocation + str(saveNumber) + ".Gating Variable Timeseries" + str(saveNumber) + ".png")
+        plt.savefig(saveLocation + str(saveNumber) + ".Gating Variable Timeseries" + ".png")
         plt.show()
 
     def plotChannelCurrentsTimeSeries(self, saveLocation, saveNumber):
@@ -409,7 +411,7 @@ class HogdkinHuxley:
         plt.ylabel("Current (mA/cm^2)")
         plt.legend(loc="upper right")
         plt.title("Channel Currents")
-        plt.savefig(saveLocation + str(saveNumber) + ".Channel Current Timeseries" + str(saveNumber) + ".png")
+        plt.savefig(saveLocation + str(saveNumber) + ".Channel Current Timeseries" + ".png")
         plt.show()
 
     def prepareToPlot(self):
