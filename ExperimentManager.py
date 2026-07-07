@@ -93,8 +93,8 @@ class ExperimentManager:
                     current = WhiteNoise(0, 1000)
                     self.neuron.runModel(self.I_hold, current, True, False, True, False)
                     #Run model
-                    current = WhiteNoise(topCurrent, 500*10)
-                    self.neuron.runModel(self.I_hold, current, True, True, True, False)
+                    current = WhiteNoise(topCurrent, 500*4)
+                    self.neuron.runModel(self.I_hold, current, True, True, True, True)
                     self.neuron.prepareToPlot()
                     self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),False, True, "Varying kn_H " + str(permutationValue))
                 #plt.savefig(self.saveLocation + str(self.getPlotNumber()) + ".Channel Current Timeseries" + str(self.getPlotNumber()) + ".png")
@@ -125,7 +125,7 @@ class ExperimentManager:
 
     def generateValues(self, mean):
         #Assume twenty plots and 20% on each side
-        numberOfValues = 40
+        numberOfValues = 20
         percentagePerSide = 0.70#0.2
         distanceFromMean = percentagePerSide * mean
         lowerBound = mean - distanceFromMean
