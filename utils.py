@@ -15,6 +15,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     h_KDR0 = y0[8]
     n_H0 = y0[9]
     V0 = y0[10]
+    Ca_c = y0[11]
 
     # Non derivative gating functions
     m_NaT = boltzmann(V0, Vm_NaT, km_NaT)
@@ -33,9 +34,12 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     I_L = I_L_get(g_L, V0, E_L)
     I_H = I_H_get(g_H, p, m_H0, n_H0, V0, E_H)
 
+    # Calcium
+    dCa_c = ((1 + B_c / k_d) ** -1) * ((-I_CaT / (2 * F*A*d)) - gamma * (Ca_c - Ca_cr))
+
     #Voltage
     if voltageRateIncrease:
-        dV = (I_app.getCurrent(t) + I_hold - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L - I_H) * ((1/C))
+        dV = (I_app.getCurrent(t) + I_hold - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L - I_H - I_SK) * ((1/C))
     else:
         dV = 0
 
@@ -52,7 +56,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     dn_H = gateDerivative(V0, Vn_H, kn_H, n_H0, tau_n_H)
 
     #Pack
-    y = np.array([dm_CaT, dm_CaH, dm_KDR, dm_KM, dm_H, dh_NaT, dh_CaT, dh_CaH, dh_KDR, dn_H, dV]).T
+    y = np.array([dm_CaT, dm_CaH, dm_KDR, dm_KM, dm_H, dh_NaT, dh_CaT, dh_CaH, dh_KDR, dn_H, dV, dCa_c]).T
 
     if verbose:
         print("t " + str(t) + " I " + str(I_app.getCurrent(t)) + " Last V " + str(V0))
