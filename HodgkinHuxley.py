@@ -5,7 +5,7 @@ from fontTools.merge.util import first
 from scipy.integrate import solve_ivp
 from matplotlib import pyplot as plt
 from utils import model, boltzmann, I_NaT_get, I_NaP_get, I_CaT_get, I_CaH_get, I_KDR_get, \
-    I_KM_get, I_L_get, I_H_get
+    I_KM_get, I_L_get, I_H_get, I_SK_get
 
 conversionFactor_mToU = 1 #Maybe 1000
 conversionFactor_mToU_C = 1 #Maybe 1000
@@ -344,7 +344,7 @@ class HogdkinHuxley:
                 self.t_I_KM = np.append(self.t_I_KM, I_KM_get(self.g_KM, self.t_m_KM[i], voltage, self.E_K))
                 self.t_I_L = np.append(self.t_I_L, I_L_get(self.g_L, voltage, self.E_L))
                 self.t_I_H = np.append(self.t_I_H, I_H_get(self.g_H, self.p, self.t_m_H[i], self.t_n_H[i], voltage, self.E_H))
-                self.t_I_SK = np.append(self.t_I_SK, I_SK_get())
+                self.t_I_SK = np.append(self.t_I_SK, I_SK_get(self.g_SK, self.t_Ca[i], self.k_SK, voltage, self.E_K))
             # print(I_app.getCurrent(I_app.getLength))
             # print(I_hold)
             # print(self.t_I_NaT[-1] + self.t_I_NaP[-1] + self.t_I_CaT[-1] + self.t_I_CaH[-1] + self.t_I_KDR[-1] + self.t_I_KM[-1] + self.t_I_L[-1] + self.t_I_H[-1])
@@ -377,7 +377,6 @@ class HogdkinHuxley:
             self.h_KDR0 = z[8, -1]
             self.n_H0 = z[9, -1]
             self.V0 = z[10, -1]
-
         return z
 
     def plotVoltageTimeSeries(self, saveLocation, saveNumber, save = True, show = True, additionalText=""):
@@ -428,11 +427,20 @@ class HogdkinHuxley:
         plt.plot(self.final_t_eval, self.t_I_KM, label="KM")
         plt.plot(self.final_t_eval, self.t_I_L, label="L")
         plt.plot(self.final_t_eval, self.t_I_H, label="H")
+        plt.plot(self.final_t_eval, self.t_I_SK, label="SK")
         plt.xlabel("Time (ms)")
         plt.ylabel("Current (mA/cm^2)")
         plt.legend(loc="upper right")
         plt.title("Channel Currents")
         plt.savefig(saveLocation + str(saveNumber) + ".Channel Current Timeseries" + ".png")
+        plt.show()
+
+    def plotCalciumConcentration(self, saveLocation, saveNumber):
+        plt.plot(self.final_t_eval, self.t_Ca)
+        plt.xlabel("Time (ms)")
+        plt.ylabel("[Ca]")
+        plt.title("Calcium Concentration")
+        plt.savefig(saveLocation + str(saveNumber) + ".Calcium Concentration" + ".png")
         plt.show()
 
     def prepareToPlot(self):

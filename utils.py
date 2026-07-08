@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import constants
 
 #Define units
 
@@ -38,7 +39,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     I_SK = I_SK_get(g_SK, Ca_c, k_SK, V0, E_K)
 
     # Calcium
-    dCa_c = ((1 + B_c / k_d) ** -1) * ((-I_CaT / (2 * F*A*d)) - gamma * (Ca_c - Ca_cr))
+    dCa_c = ((1 + B_c / k_d) ** -1) * ((-I_CaT / (2 * constants.F*A*d)) - gamma * (Ca_c - Ca_cr))
 
     #Voltage
     if voltageRateIncrease:
