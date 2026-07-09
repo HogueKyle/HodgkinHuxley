@@ -113,6 +113,8 @@ class ExperimentManager:
         self.neuron.plotChannelTimeSeries(self.saveLocation, self.getPlotNumber())
         print("Printing channel current time series")
         self.neuron.plotChannelCurrentsTimeSeries(self.saveLocation, self.getPlotNumber())
+        print("Printing calcium concentration time series")
+        self.neuron.plotCalciumConcentration(self.saveLocation, self.getPlotNumber())
 
     def printText(self, text, saveLocation, saveNumber):
         plt.text(0.5,0.5, text, fontsize=20, horizontalalignment="center", verticalalignment="center", fontstretch="ultra-expanded")

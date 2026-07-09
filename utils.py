@@ -1,9 +1,8 @@
 import numpy as np
-from scipy import constants
 
 #Define units
 
-def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, Vm_NaT, Vm_NaP, Vm_CaT, Vm_CaH, Vm_KDR, Vm_KM, Vm_H, Vh_NaT, Vh_CaT, Vh_CaH, Vh_KDR, Vn_H, km_NaT, km_NaP, km_CaT, km_CaH, km_KDR, km_KM, km_H, kh_NaT, kh_CaT, kh_CaH, kh_KDR, kn_H, tau_m_CaT, tau_m_CaH, tau_m_KDR, tau_m_KM, tau_m_H, tau_h_CaT, tau_h_CaH, tau_h_KDR, tau_n_H, E_Na, E_Ca, E_K, E_L, E_H, C, k_d, A, d, gamma, Ca_cr, g_SK, k_SK, I_app, voltageRateIncrease, verbose):
+def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, Vm_NaT, Vm_NaP, Vm_CaT, Vm_CaH, Vm_KDR, Vm_KM, Vm_H, Vh_NaT, Vh_CaT, Vh_CaH, Vh_KDR, Vn_H, km_NaT, km_NaP, km_CaT, km_CaH, km_KDR, km_KM, km_H, kh_NaT, kh_CaT, kh_CaH, kh_KDR, kn_H, tau_m_CaT, tau_m_CaH, tau_m_KDR, tau_m_KM, tau_m_H, tau_h_CaT, tau_h_CaH, tau_h_KDR, tau_n_H, E_Na, E_Ca, E_K, E_L, E_H, C, k_d, A, d, gamma, Ca_cr, g_SK, k_SK, B_c, F, I_app, voltageRateIncrease, verbose):
     # Unpack
     m_CaT0 = y0[0]
     m_CaH0 = y0[1]
@@ -39,7 +38,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     I_SK = I_SK_get(g_SK, Ca_c, k_SK, V0, E_K)
 
     # Calcium
-    dCa_c = ((1 + B_c / k_d) ** -1) * ((-I_CaT / (2 * constants.F*A*d)) - gamma * (Ca_c - Ca_cr))
+    dCa_c = ((1 + B_c / k_d) ** -1) * ((-I_CaT / (2 * F*A*d)) - gamma * (Ca_c - Ca_cr))
 
     #Voltage
     if voltageRateIncrease:

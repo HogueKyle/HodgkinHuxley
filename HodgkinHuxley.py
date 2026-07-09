@@ -3,6 +3,7 @@ from cProfile import label
 import numpy as np
 from fontTools.merge.util import first
 from scipy.integrate import solve_ivp
+from scipy import constants
 from matplotlib import pyplot as plt
 from utils import model, boltzmann, I_NaT_get, I_NaP_get, I_CaT_get, I_CaH_get, I_KDR_get, \
     I_KM_get, I_L_get, I_H_get, I_SK_get
@@ -129,6 +130,8 @@ class HogdkinHuxley:
         self.Ca_cr = None
         self.g_SK = None
         self.k_SK = None
+        self.B_c = None
+        self.F = None
         # Calcium time series
         self.t_Ca = np.array([])
         self.t_I_SK = np.array([])
@@ -204,6 +207,16 @@ class HogdkinHuxley:
         self.V0 = -80
         # Conductance
         self.C = 1 / conversionFactor_mToU_C
+        # Calcium
+        self.k_d = 0.1  # um
+        self.A = 3000  # um^2
+        self.d = 0.1  # um
+        self.gamma = 0.01  # ms-1
+        self.Ca_cr = 0.07  # um
+        self.g_SK = 10  # nS
+        self.k_SK = 0.8  # uM
+        self.B_c = 90  # microMolar
+        self.F = constants.physical_constants['Faraday constant'][0] #C mol^-1
 
     def setValues_alt(self):
         #Units
@@ -284,6 +297,9 @@ class HogdkinHuxley:
         self.Ca_cr = 0.07 #um
         self.g_SK = 10 #nS
         self.k_SK = 0.8 #uM
+        self.B_c = 90 #microMolar
+        self.Ca_c0 = self.Ca_cr
+        self.F = constants.physical_constants['Faraday constant'][0] #C mol^-1
 
     def updateValues(self, m_CaT0, m_CaH0, m_KDR0, m_KM0, m_H0, h_NaT0, h_CaT0, h_CaH0, h_KDR0, n_H0):
         self.m_CaT0 = m_CaT0
@@ -305,8 +321,8 @@ class HogdkinHuxley:
         t_span = [0, self.length]
         self.t_eval = np.arange(start, self.length, self.step)
         self.I_hold = I_hold
-        y0_Gates = np.array([self.m_CaT0, self.m_CaH0, self.m_KDR0, self.m_KM0, self.m_H0, self.h_NaT0, self.h_CaT0, self.h_CaH0, self.h_KDR0, self.n_H0, self.V0]).T
-        args =[self.I_hold, self.g_NaT, self.g_NaP, self.g_CaT, self.g_CaH, self.g_KDR, self.g_KM, self.g_L, self.g_H, self.p, self.Vm_NaT, self.Vm_NaP, self.Vm_CaT, self.Vm_CaH, self.Vm_KDR, self.Vm_KM, self.Vm_H, self.Vh_NaT, self.Vh_CaT, self.Vh_CaH, self.Vh_KDR, self.Vn_H, self.km_NaT, self.km_NaP, self.km_CaT, self.km_CaH, self.km_KDR, self.km_KM, self.km_H, self.kh_NaT, self.kh_CaT, self.kh_CaH, self.kh_KDR, self.kn_H, self.tau_m_CaT, self.tau_m_CaH, self.tau_m_KDR, self.tau_m_KM, self.tau_m_H, self.tau_h_CaT, self.tau_h_CaH, self.tau_h_KDR, self.tau_n_H, self.E_Na, self.E_Ca, self.E_K, self.E_L, self.E_H, self.C, self.k_d, self.A, self.d, self.gamma, self.Ca_cr, self.g_SK, self.k_SK, I_app, voltageRateIncrease, verbose]
+        y0_Gates = np.array([self.m_CaT0, self.m_CaH0, self.m_KDR0, self.m_KM0, self.m_H0, self.h_NaT0, self.h_CaT0, self.h_CaH0, self.h_KDR0, self.n_H0, self.V0, self.Ca_c0]).T
+        args =[self.I_hold, self.g_NaT, self.g_NaP, self.g_CaT, self.g_CaH, self.g_KDR, self.g_KM, self.g_L, self.g_H, self.p, self.Vm_NaT, self.Vm_NaP, self.Vm_CaT, self.Vm_CaH, self.Vm_KDR, self.Vm_KM, self.Vm_H, self.Vh_NaT, self.Vh_CaT, self.Vh_CaH, self.Vh_KDR, self.Vn_H, self.km_NaT, self.km_NaP, self.km_CaT, self.km_CaH, self.km_KDR, self.km_KM, self.km_H, self.kh_NaT, self.kh_CaT, self.kh_CaH, self.kh_KDR, self.kn_H, self.tau_m_CaT, self.tau_m_CaH, self.tau_m_KDR, self.tau_m_KM, self.tau_m_H, self.tau_h_CaT, self.tau_h_CaH, self.tau_h_KDR, self.tau_n_H, self.E_Na, self.E_Ca, self.E_K, self.E_L, self.E_H, self.C, self.k_d, self.A, self.d, self.gamma, self.Ca_cr, self.g_SK, self.k_SK, self.B_c, self.F, I_app, voltageRateIncrease, verbose]
         # Run ODE for gating  , method="DOP853", rtol=1e-10, atol=1e-13
         ODEresults = solve_ivp(model, t_span, y0_Gates, t_eval=self.t_eval, args=args, method="LSODA", max_step = 0.005, rtol=1e-13, atol=1e-8)
         z = ODEresults.y
@@ -377,6 +393,7 @@ class HogdkinHuxley:
             self.h_KDR0 = z[8, -1]
             self.n_H0 = z[9, -1]
             self.V0 = z[10, -1]
+            self.Ca_c0 = z[11, -1]
         return z
 
     def plotVoltageTimeSeries(self, saveLocation, saveNumber, save = True, show = True, additionalText=""):
