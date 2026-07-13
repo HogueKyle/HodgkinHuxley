@@ -1,5 +1,7 @@
 import numpy as np
 
+conversionFactor_mToU = 1000 #Maybe 1000
+
 #Define units
 
 def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, Vm_NaT, Vm_NaP, Vm_CaT, Vm_CaH, Vm_KDR, Vm_KM, Vm_H, Vh_NaT, Vh_CaT, Vh_CaH, Vh_KDR, Vn_H, km_NaT, km_NaP, km_CaT, km_CaH, km_KDR, km_KM, km_H, kh_NaT, kh_CaT, kh_CaH, kh_KDR, kn_H, tau_m_CaT, tau_m_CaH, tau_m_KDR, tau_m_KM, tau_m_H, tau_h_CaT, tau_h_CaH, tau_h_KDR, tau_n_H, E_Na, E_Ca, E_K, E_L, E_H, C, k_d, A, d, gamma, Ca_cr, g_SK, k_SK, B_c, F, I_app, voltageRateIncrease, verbose):
@@ -42,7 +44,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
 
     #Voltage
     if voltageRateIncrease:
-        dV = (I_app.getCurrent(t) + I_hold - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L - I_H - I_SK) * ((1/C))
+        dV = (I_app.getCurrent(t) * 1000 + I_hold - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L - I_H - I_SK) * ((1/C))
     else:
         dV = 0
 

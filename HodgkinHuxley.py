@@ -1,15 +1,12 @@
 from cProfile import label
 
 import numpy as np
-from fontTools.merge.util import first
 from scipy.integrate import solve_ivp
 from scipy import constants
 from matplotlib import pyplot as plt
 from utils import model, boltzmann, I_NaT_get, I_NaP_get, I_CaT_get, I_CaH_get, I_KDR_get, \
-    I_KM_get, I_L_get, I_H_get, I_SK_get
+    I_KM_get, I_L_get, I_H_get, I_SK_get, conversionFactor_mToU
 
-conversionFactor_mToU = 1 #Maybe 1000
-conversionFactor_mToU_C = 1 #Maybe 1000
 
 class HogdkinHuxley:
     def __init__(self):
@@ -206,7 +203,7 @@ class HogdkinHuxley:
         # Membrane voltage
         self.V0 = -80
         # Conductance
-        self.C = 1 / conversionFactor_mToU_C
+        self.C = 1 / conversionFactor_mToU
         # Calcium
         self.k_d = 0.1  # um
         self.A = 3000  # um^2
@@ -221,14 +218,14 @@ class HogdkinHuxley:
     def setValues_alt(self):
         #Units
         # Initialize conductance
-        self.g_NaT = 7.2603 / conversionFactor_mToU
-        self.g_NaP = 0.0423 / conversionFactor_mToU
-        self.g_CaT = 0.067 / conversionFactor_mToU
-        self.g_CaH = 1.5208 / conversionFactor_mToU
-        self.g_KDR = 12.505 / conversionFactor_mToU
-        self.g_KM = 3.3837 / conversionFactor_mToU
-        self.g_L = 0.0035 / conversionFactor_mToU
-        self.g_H = 0.0503 / conversionFactor_mToU
+        self.g_NaT = 7.2603 * conversionFactor_mToU
+        self.g_NaP = 0.0423 * conversionFactor_mToU
+        self.g_CaT = 0.067 * conversionFactor_mToU
+        self.g_CaH = 1.5208 * conversionFactor_mToU
+        self.g_KDR = 12.505 * conversionFactor_mToU
+        self.g_KM = 3.3837 * conversionFactor_mToU
+        self.g_L = 0.0035 * conversionFactor_mToU
+        self.g_H = 0.0503 * conversionFactor_mToU
         # Initialize gating variable
         self.m_NaT_inf = 0
         self.m_NaP_inf = 0
@@ -288,7 +285,7 @@ class HogdkinHuxley:
         # Membrane voltage
         self.V0 = -80
         # Conductance
-        self.C = 1 / conversionFactor_mToU_C
+        self.C = 1 * conversionFactor_mToU
         #Calcium
         self.k_d = 0.1 #um
         self.A = 3000 #um^2
@@ -446,7 +443,7 @@ class HogdkinHuxley:
         plt.plot(self.final_t_eval, self.t_I_H, label="H")
         plt.plot(self.final_t_eval, self.t_I_SK, label="SK")
         plt.xlabel("Time (ms)")
-        plt.ylabel("Current (mA/cm^2)")
+        plt.ylabel("Current (uA/cm^2)")
         plt.legend(loc="upper right")
         plt.title("Channel Currents")
         plt.savefig(saveLocation + str(saveNumber) + ".Channel Current Timeseries" + ".png")

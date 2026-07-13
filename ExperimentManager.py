@@ -8,7 +8,7 @@ from utils import sphereArea, residuals
 
 
 class ExperimentManager:
-    def __init__(self):
+    def __init__(self, peakCurrent):
         self.experimentsRun = 0
         self.saveLocation = "./Plots/"
         self.neuron = HogdkinHuxley()
@@ -16,6 +16,7 @@ class ExperimentManager:
         self.starting_I_hold =  -0.20956573344994844
         self.I_hold = self.starting_I_hold
         # self.I_hold = -0.00020956573344785734
+        self.peakCurrent = peakCurrent
     def run(self, experiment):
         # Optimize for steady state
         match experiment:
@@ -49,12 +50,11 @@ class ExperimentManager:
             case "Step":
                 print("Running Step Experiment")
                 # Run step current
-                topCurrent = 2
                 current = WhiteNoise(0, 1000)
                 self.neuron.runModel(self.I_hold, current, True, False, True, True)
                 current = WhiteNoise(0, 500)
                 self.neuron.runModel(self.I_hold, current, True, True, True, True)
-                current = WhiteNoise(topCurrent, 500)
+                current = WhiteNoise(self.peakCurrent, 500)
                 self.neuron.runModel(self.I_hold, current, True, True, True, True)
                 current = WhiteNoise(0, 500)
                 self.neuron.runModel(self.I_hold, current, True, True, True, True)
@@ -65,23 +65,20 @@ class ExperimentManager:
                 #self.neuron.runModel(self.I_hold, current, True, False, True, False)
                 # topCurrent =  1.5e-7 / sphereArea(0.0028)
                 # topCurrent =  3e-7 / sphereArea(0.0025)
-                topCurrent = 2 #2 and 3
                 current = WhiteNoise(0, 1000)
                 self.neuron.runModel(self.I_hold, current, True, False, True, True)
-                current = WhiteNoise(topCurrent, 500)
+                current = WhiteNoise(self.peakCurrent, 500)
                 self.neuron.runModel(self.I_hold, current, True, True, True, True)
                 self.plotingSuite("Constant Current 200pA")
             case "Chirp":
                 # Run chirp current
-                topCurrent = 2
                 current = WhiteNoise(0, 1000)
                 self.neuron.runModel(self.I_hold, current, True, False, True, True)
-                current = Chirp(20 * 1000, topCurrent)
+                current = Chirp(20 * 1000, self.peakCurrent)
                 self.neuron.runModel(self.I_hold, current, True, True, True, True) #add step size 0.01
                 self.plotingSuite("Chirp Current 200pA")
             case "PermutationTesting":
                 #Create array of values to permute through. Starting with tau_m_CaT which has a default value of 2.
-                topCurrent = 1
                 permutationValues = self.generateValues(75)
                 for permutationValue in permutationValues:
                     print(permutationValue)
@@ -93,7 +90,7 @@ class ExperimentManager:
                     current = WhiteNoise(0, 1000)
                     self.neuron.runModel(self.I_hold, current, True, False, True, False)
                     #Run model
-                    current = WhiteNoise(topCurrent, 500*10)
+                    current = WhiteNoise(self.peakCurrent, 500*10)
                     self.neuron.runModel(self.I_hold, current, True, True, True, False)
                     self.neuron.prepareToPlot()
                     self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),False, True, "Varying kn_H " + str(permutationValue))
