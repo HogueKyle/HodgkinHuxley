@@ -11,7 +11,7 @@ from ExperimentManager import ExperimentManager
 
 
 
-CoolExperiment = ExperimentManager(3)
+CoolExperiment = ExperimentManager(2)
 # CoolExperiment.run("Optimize")
 CoolExperiment.run("Constant")
 # CoolExperiment.run("Restart")

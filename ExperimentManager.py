@@ -32,7 +32,7 @@ class ExperimentManager:
                 print("Hold current: " + str(result.x[0]))
                 #Update initial gating variable
                 self.I_hold = result.x[0]
-                z = self.neuron.runModel(self.I_hold, current, True, False, False, False)
+                z = self.neuron.runModel(self.I_hold, current, True, False, False, False, False)
                 print("-------")
                 print("m_CaT0 :" + str(z[0, -1]))
                 print("m_CaH0 :" + str(z[1, -1]))
@@ -51,14 +51,14 @@ class ExperimentManager:
                 print("Running Step Experiment")
                 # Run step current
                 current = WhiteNoise(0, 1000)
-                self.neuron.runModel(self.I_hold, current, True, False, True, True)
+                self.neuron.runModel(self.I_hold, current, True, False, False, True, True)
                 current = WhiteNoise(0, 500)
-                self.neuron.runModel(self.I_hold, current, True, True, True, True)
+                self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
                 current = WhiteNoise(self.peakCurrent, 500)
-                self.neuron.runModel(self.I_hold, current, True, True, True, True)
+                self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
                 current = WhiteNoise(0, 500)
-                self.neuron.runModel(self.I_hold, current, True, True, True, True)
-                self.plotingSuite("Step Current 200pA for 500mS")
+                self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
+                self.plotingSuite("Step Current " + str(self.peakCurrent * 100) + "pA for 500mS")
             case "Constant":
                 print("Running Constant Current Experiment")
                 #current = WhiteNoise(0, 1000)
@@ -66,17 +66,17 @@ class ExperimentManager:
                 # topCurrent =  1.5e-7 / sphereArea(0.0028)
                 # topCurrent =  3e-7 / sphereArea(0.0025)
                 current = WhiteNoise(0, 1000)
-                self.neuron.runModel(self.I_hold, current, True, False, True, True)
+                self.neuron.runModel(self.I_hold, current, True, False, False, True, True)
                 current = WhiteNoise(self.peakCurrent, 500)
-                self.neuron.runModel(self.I_hold, current, True, True, True, True)
-                self.plotingSuite("Constant Current 200pA")
+                self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
+                self.plotingSuite("Constant Current " + str(self.peakCurrent * 100) + "pA")
             case "Chirp":
                 # Run chirp current
                 current = WhiteNoise(0, 1000)
-                self.neuron.runModel(self.I_hold, current, True, False, True, True)
+                self.neuron.runModel(self.I_hold, current, True, False, False, True, True)
                 current = Chirp(20 * 1000, self.peakCurrent)
-                self.neuron.runModel(self.I_hold, current, True, True, True, True) #add step size 0.01
-                self.plotingSuite("Chirp Current 200pA")
+                self.neuron.runModel(self.I_hold, current, True, False, True, True, True) #add step size 0.01
+                self.plotingSuite("Chirp Current " + str(self.peakCurrent * 100) + "pA")
             case "PermutationTesting":
                 #Create array of values to permute through. Starting with tau_m_CaT which has a default value of 2.
                 permutationValues = self.generateValues(75)
@@ -88,10 +88,10 @@ class ExperimentManager:
                     self.neuron.tau_m_KM = permutationValue #Needs to be changed back
                     #Get rid of transient
                     current = WhiteNoise(0, 1000)
-                    self.neuron.runModel(self.I_hold, current, True, False, True, False)
+                    self.neuron.runModel(self.I_hold, current, True, False, False, True, False)
                     #Run model
                     current = WhiteNoise(self.peakCurrent, 500*10)
-                    self.neuron.runModel(self.I_hold, current, True, True, True, False)
+                    self.neuron.runModel(self.I_hold, current, True,False, True, True, False)
                     self.neuron.prepareToPlot()
                     self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),False, True, "Varying kn_H " + str(permutationValue))
                 #plt.savefig(self.saveLocation + str(self.getPlotNumber()) + ".Channel Current Timeseries" + str(self.getPlotNumber()) + ".png")
