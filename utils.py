@@ -116,5 +116,5 @@ def residuals(x, current, a, b, c, d, model):
 def printText(text, saveLocation, saveNumber):
     plt.text(0.5,0.5, text, fontsize=20, horizontalalignment="center", verticalalignment="center", fontstretch="ultra-expanded")
     plt.axis('off')
-    plt.savefig(saveLocation + str(saveNumber) + ".Experiment Title" + ".png")
+    plt.savefig(saveLocation + str(saveNumber) + ".1.Experiment Title" + ".png")
     plt.show()

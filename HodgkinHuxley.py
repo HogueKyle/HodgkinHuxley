@@ -351,7 +351,7 @@ class HogdkinHuxley:
             additionalText = " " + additionalText
         plt.title("Voltage Trace" + additionalText)
         if save:
-            plt.savefig(saveLocation + str(saveNumber) + ".Voltage Trace" + ".png")
+            plt.savefig(saveLocation + str(saveNumber) + ".2.Voltage Trace" + ".png")
         if show:
             plt.show()
 
@@ -360,7 +360,7 @@ class HogdkinHuxley:
         plt.xlabel("Time (ms)")
         plt.ylabel("Current (mA/cm^2)")
         plt.title("Applied Current")
-        plt.savefig(saveLocation + str(saveNumber) + ".Applied Current Timeseries" + ".png")
+        plt.savefig(saveLocation + str(saveNumber) + ".3.Applied Current Timeseries" + ".png")
         plt.show()
 
     def plotChannelTimeSeries(self, saveLocation, saveNumber):
@@ -379,7 +379,7 @@ class HogdkinHuxley:
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        plt.savefig(saveLocation + str(saveNumber) + ".Gating Variable Timeseries" + ".png")
+        plt.savefig(saveLocation + str(saveNumber) + ".4.Gating Variable Timeseries" + ".png")
         plt.show()
 
     def plotChannelCurrentsTimeSeries(self, saveLocation, saveNumber):
@@ -396,7 +396,7 @@ class HogdkinHuxley:
         plt.ylabel("Current (nA/cm^2)")
         plt.legend(loc="upper right")
         plt.title("Channel Currents")
-        plt.savefig(saveLocation + str(saveNumber) + ".Channel Current Timeseries" + ".png")
+        plt.savefig(saveLocation + str(saveNumber) + ".5.Channel Current Timeseries" + ".png")
         plt.show()
 
     def plotCalciumCurrent(self, saveLocation, saveNumber):
@@ -405,7 +405,7 @@ class HogdkinHuxley:
         plt.ylabel("Current (nA/cm^2)")
         plt.legend(loc="upper right")
         plt.title("ICa")
-        plt.savefig(saveLocation + str(saveNumber) + ".ICa" + ".png")
+        plt.savefig(saveLocation + str(saveNumber) + ".6.Combined Ca Current Timeseries" + ".png")
         plt.show()
 
     def plotCalciumConcentration(self, saveLocation, saveNumber):
@@ -413,7 +413,7 @@ class HogdkinHuxley:
         plt.xlabel("Time (ms)")
         plt.ylabel("[Ca] (uM)")
         plt.title("Calcium Concentration")
-        plt.savefig(saveLocation + str(saveNumber) + ".Calcium Concentration" + ".png")
+        plt.savefig(saveLocation + str(saveNumber) + ".7.Calcium Concentration" + ".png")
         plt.show()
 
     def prepareToPlot(self):

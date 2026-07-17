@@ -13,7 +13,7 @@ from utils import sphereArea, residuals, printText
 class ExperimentManager:
     def __init__(self, peakCurrent):
         self.experimentsRun = 0
-        self.saveLocation = "./Plots/"
+        self.saveLocation = "./Runs/300pA/"
         self.neuron = HogdkinHuxley()
         self.neuron.setValues_alt()
         self.starting_I_hold =  -0.20956573344994844
@@ -96,19 +96,20 @@ class ExperimentManager:
                     current = WhiteNoise(self.peakCurrent, 2000)
                     self.neuron.runModel(self.I_hold, current, True,False, True, True, False)
                     self.neuron.prepareToPlot()
-                    self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),False, True, "Varying kn_H " + str(permutationValue))
+                    self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),False, True, "Varying tau_m_KM " + str(permutationValue))
             case "PermutationTesting2":
                 # self.g_SK = 10  # * 1500# nS
                 # self.k_SK = 0.8  # uM
-                iterations = 44
+                iterations = 22
                 g_SK_Array = np.array(np.linspace(0, 10000, iterations))
                 k_SK_Array = np.array(np.linspace(0, 10000, iterations))
-                valueArray = np.zeros(iterations ** 2)
-                for g_SK_value in g_SK_Array:
-                    for k_SK_value in k_SK_Array:
-                        valueArray[0] =
-
-                valueArray = np.column_stack((np.full((len(g_SK_Array),1),self.starting_I_hold),np.full((len(g_SK_Array),1),self.peakCurrent), np.array(range(len(g_SK_Array))) + 1, g_SK_Array, k_SK_Array))
+                valueArray = np.zeros([iterations ** 2, 5])
+                counter = 0
+                for i, g_SK_value in enumerate(g_SK_Array):
+                    for z, k_SK_value in enumerate(k_SK_Array):
+                        counter +=1
+                        valueArray[counter - 1] = [self.starting_I_hold, self.peakCurrent, counter, g_SK_value, k_SK_value]
+                #valueArray = np.column_stack((np.full((len(g_SK_Array),1),self.starting_I_hold),np.full((len(g_SK_Array),1),self.peakCurrent), np.array(range(len(g_SK_Array))) + 1, g_SK_Array, k_SK_Array))
                 pool_obj = multiprocessing.Pool()
                 pool_obj.starmap(permute, valueArray)
         self.experimentsRun += 1

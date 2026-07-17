@@ -18,4 +18,5 @@ if __name__ == '__main__':
     # CoolExperiment.run("Step")
     # CoolExperiment.run("Restart")
     # CoolExperiment.run("Chirp")
-    CoolExperiment.run("PermutationTesting2")
+    # CoolExperiment.run("PermutationTesting2")
+    CoolExperiment.run("PermutationTesting")
