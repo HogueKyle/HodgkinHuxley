@@ -9,13 +9,13 @@ from ExperimentManager import ExperimentManager
 #
 # #Run steady state
 
+if __name__ == '__main__':
 
-
-CoolExperiment = ExperimentManager(2)
-# CoolExperiment.run("Optimize")
-CoolExperiment.run("Constant")
-# CoolExperiment.run("Restart")
-# CoolExperiment.run("Step")
-# CoolExperiment.run("Restart")
-# CoolExperiment.run("Chirp")
-# CoolExperiment.run("PermutationTesting")
+    CoolExperiment = ExperimentManager(3)
+    # CoolExperiment.run("Optimize")
+    # CoolExperiment.run("Constant")
+    # CoolExperiment.run("Restart")
+    # CoolExperiment.run("Step")
+    # CoolExperiment.run("Restart")
+    # CoolExperiment.run("Chirp")
+    CoolExperiment.run("PermutationTesting2")

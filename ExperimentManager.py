@@ -1,10 +1,13 @@
+import multiprocessing
+
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import least_squares
 
 from Electrode import WhiteNoise, Chirp
 from HodgkinHuxley import HogdkinHuxley
-from utils import sphereArea, residuals
+from ParallelFunctions import permute
+from utils import sphereArea, residuals, printText
 
 
 class ExperimentManager:
@@ -66,9 +69,9 @@ class ExperimentManager:
                 # topCurrent =  1.5e-7 / sphereArea(0.0028)
                 # topCurrent =  3e-7 / sphereArea(0.0025)
                 current = WhiteNoise(0, 1000)
-                self.neuron.runModel(self.I_hold, current, True, False, False, True, True)
-                current = WhiteNoise(self.peakCurrent, 500)
-                self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
+                self.neuron.runModel(self.I_hold, current, True, True, False, True, True)
+                current = WhiteNoise(self.peakCurrent, 1000)
+                self.neuron.runModel(self.I_hold, current, True, True, True, True, True)
                 self.plotingSuite("Constant Current " + str(self.peakCurrent * 100) + "pA")
             case "Chirp":
                 # Run chirp current
@@ -85,23 +88,35 @@ class ExperimentManager:
                     self.neuron = HogdkinHuxley()
                     self.neuron.setValues_alt()
                     self.I_hold = self.starting_I_hold
-                    self.neuron.tau_m_KM = permutationValue #Needs to be changed back
+                    self.neuron.tau_m_KM = permutationValue
                     #Get rid of transient
                     current = WhiteNoise(0, 1000)
                     self.neuron.runModel(self.I_hold, current, True, False, False, True, False)
                     #Run model
-                    current = WhiteNoise(self.peakCurrent, 500*10)
+                    current = WhiteNoise(self.peakCurrent, 2000)
                     self.neuron.runModel(self.I_hold, current, True,False, True, True, False)
                     self.neuron.prepareToPlot()
                     self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),False, True, "Varying kn_H " + str(permutationValue))
-                #plt.savefig(self.saveLocation + str(self.getPlotNumber()) + ".Channel Current Timeseries" + str(self.getPlotNumber()) + ".png")
-                #plt.show()
+            case "PermutationTesting2":
+                # self.g_SK = 10  # * 1500# nS
+                # self.k_SK = 0.8  # uM
+                iterations = 44
+                g_SK_Array = np.array(np.linspace(0, 10000, iterations))
+                k_SK_Array = np.array(np.linspace(0, 10000, iterations))
+                valueArray = np.zeros(iterations ** 2)
+                for g_SK_value in g_SK_Array:
+                    for k_SK_value in k_SK_Array:
+                        valueArray[0] =
+
+                valueArray = np.column_stack((np.full((len(g_SK_Array),1),self.starting_I_hold),np.full((len(g_SK_Array),1),self.peakCurrent), np.array(range(len(g_SK_Array))) + 1, g_SK_Array, k_SK_Array))
+                pool_obj = multiprocessing.Pool()
+                pool_obj.starmap(permute, valueArray)
         self.experimentsRun += 1
     def plotingSuite(self, text):
         print("Ploting preparation")
         self.neuron.prepareToPlot()
         print("Printing title")
-        self.printText(text, self.saveLocation, self.getPlotNumber())
+        printText(text, self.saveLocation, self.getPlotNumber())
         print("Printing voltage time series")
         self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber())
         print("Printing applied current time series")
@@ -112,19 +127,14 @@ class ExperimentManager:
         self.neuron.plotChannelCurrentsTimeSeries(self.saveLocation, self.getPlotNumber())
         print("Printing calcium concentration time series")
         self.neuron.plotCalciumConcentration(self.saveLocation, self.getPlotNumber())
-
-    def printText(self, text, saveLocation, saveNumber):
-        plt.text(0.5,0.5, text, fontsize=20, horizontalalignment="center", verticalalignment="center", fontstretch="ultra-expanded")
-        plt.axis('off')
-        plt.savefig(saveLocation + str(saveNumber) + ".Experiment Title" + ".png")
-        plt.show()
+        print("Printing combined calcium current time series")
+        self.neuron.plotCalciumCurrent(self.saveLocation, self.getPlotNumber())
 
     def getPlotNumber(self):
         return self.experimentsRun + 1
 
-    def generateValues(self, mean):
+    def generateValues(self, mean, numberOfValues = 40):
         #Assume twenty plots and 20% on each side
-        numberOfValues = 40
         percentagePerSide = 0.70#0.2
         distanceFromMean = percentagePerSide * mean
         lowerBound = mean - distanceFromMean

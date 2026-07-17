@@ -1,6 +1,8 @@
 import numpy as np
+from matplotlib import pyplot as plt
 
-conversionFactor_mToU = 1000 #Maybe 1000
+conversionFactor_mToU = 1 #Maybe 1000
+conversionFactor_nToM = 1000000 #Maybe 1000
 
 #Define units
 
@@ -40,11 +42,12 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     I_SK = I_SK_get(g_SK, Ca_c, k_SK, V0, E_K) if useSK else 0
 
     # Calcium
-    dCa_c = ((1 + B_c / k_d) ** -1) * ((-I_CaT / (2 * F*A*d)) - gamma * (Ca_c - Ca_cr)) if useSK else 0
+    # dCa_c = ((1 + B_c / k_d) ** -1) * (((-(I_CaH + I_CaT) / (2*A*F*d))*1e-9) - gamma * (Ca_c - Ca_cr)) if useSK else 0
+    dCa_c = ((1 + B_c / k_d) ** -1) * (((-(I_CaH + I_CaT) / (2*A*F*d))) - gamma * (Ca_c - Ca_cr)) if useSK else 0
 
     #Voltage
     if voltageRateIncrease:
-        dV = (I_app.getCurrent(t) * 1000 + I_hold - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L - I_H - I_SK) * ((1/C))
+        dV = ((I_app.getCurrent(t) + I_hold - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L - I_H  - I_SK)) / C
     else:
         dV = 0
 
@@ -64,7 +67,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     y = np.array([dm_CaT, dm_CaH, dm_KDR, dm_KM, dm_H, dh_NaT, dh_CaT, dh_CaH, dh_KDR, dn_H, dV, dCa_c]).T
 
     if verbose:
-        print("t " + str(t) + " I " + str(I_app.getCurrent(t)) + " Last V " + str(V0))
+        print("t " + str(t) + " I " + str(I_app.getCurrent(t)) + " Last V " + str(V0) + " Last C " + str(Ca_c) + " dC " + str(dCa_c))
     return y
 
 def gateDerivative(V, Vx, kx, x, tau):
@@ -81,9 +84,11 @@ def I_NaP_get(g_NaP, m_NaP, V0, E_Na):
 
 def I_CaT_get(g_CaT, m_CaT0, h_CaT0, V0, E_Ca):
     return g_CaT * m_CaT0**2 * h_CaT0 * (V0 - E_Ca)
+    # return -100
 
 def I_CaH_get(g_CaH, m_CaH0, h_CaH0, V0, E_Ca):
     return g_CaH * m_CaH0**2 * h_CaH0 * (V0 - E_Ca)
+    # return 0
 
 def I_KDR_get(g_KDR, m_KDR0, h_KDR0, V0, E_K):
     return g_KDR * m_KDR0 * h_KDR0 * (V0 - E_K)
@@ -107,3 +112,9 @@ def residuals(x, current, a, b, c, d, model):
     vPrime = model.runModel(x[0], current, a, b, c, d)[10, -1]
     print("Voltage " + str(vPrime) + " , Current " + str(x[0]) + " , Cost " + str(abs(abs(-80) - abs(vPrime))))
     return (abs(abs(-80) - abs(vPrime)))
+
+def printText(text, saveLocation, saveNumber):
+    plt.text(0.5,0.5, text, fontsize=20, horizontalalignment="center", verticalalignment="center", fontstretch="ultra-expanded")
+    plt.axis('off')
+    plt.savefig(saveLocation + str(saveNumber) + ".Experiment Title" + ".png")
+    plt.show()

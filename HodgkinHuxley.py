@@ -5,7 +5,7 @@ from scipy.integrate import solve_ivp
 from scipy import constants
 from matplotlib import pyplot as plt
 from utils import model, boltzmann, I_NaT_get, I_NaP_get, I_CaT_get, I_CaH_get, I_KDR_get, \
-    I_KM_get, I_L_get, I_H_get, I_SK_get, conversionFactor_mToU
+    I_KM_get, I_L_get, I_H_get, I_SK_get, conversionFactor_mToU, conversionFactor_nToM
 
 
 class HogdkinHuxley:
@@ -145,8 +145,6 @@ class HogdkinHuxley:
         self.g_L = 0.02
         self.g_H = 0.05
         # Initialize gating variable
-        self.m_NaT_inf = 0
-        self.m_NaP_inf = 0
         self.m_CaT0 = 0.005499631115330787
         self.m_CaH0 = 2.2658458242948663e-06
         self.m_KDR0 = 0.0014881270089334075
@@ -157,78 +155,22 @@ class HogdkinHuxley:
         self.h_CaH0 = 0.9455957087204464
         self.h_KDR0 = 0.7721798208565878
         self.n_H0 = 0.024873681844352076
-        self.p = 0.85
         # Half activation voltage
         self.Vm_NaT = -37
-        self.Vm_NaP = -47
-        self.Vm_CaT = -54
-        self.Vm_CaH = -15
-        self.Vm_KDR = -5.8
-        self.Vm_KM = -30
-        self.Vm_H = -102
-        self.Vh_NaT = -75
-        self.Vh_CaT = -65
-        self.Vh_CaH = -60
-        self.Vh_KDR = -68
-        self.Vn_H = -102
-        # Boltzman constants
-        self.km_NaT = 5
-        self.km_NaP = 3
-        self.km_CaT = 5
-        self.km_CaH = 5
-        self.km_KDR = 11.4
-        self.km_KM = 10
-        self.km_H = -13
-        self.kh_NaT = -7
-        self.kh_CaT = -8.5
-        self.kh_CaH = -7
-        self.kh_KDR = -9.7
-        self.kn_H = -6
-        # Initialize time constant
-        self.tau_m_CaT = 2
-        self.tau_m_CaH = 0.08
-        self.tau_m_KDR = 1
-        self.tau_m_KM = 75
-        self.tau_m_H = 15
-        self.tau_h_CaT = 32
-        self.tau_h_CaH = 300
-        self.tau_h_KDR = 1400
-        self.tau_n_H = 210
-        # Reverse potential
-        self.E_Na = 60
-        self.E_Ca = 90
-        self.E_K = -85
-        self.E_L = -65
-        self.E_H = -30
-        # Membrane voltage
-        self.V0 = -80
-        # Conductance
-        self.C = 1 / conversionFactor_mToU
-        # Calcium
-        self.k_d = 0.1  # um
-        self.A = 3000  # um^2
-        self.d = 0.1  # um
-        self.gamma = 0.01  # ms-1
-        self.Ca_cr = 0.07  # um
-        self.g_SK = 10  # nS
-        self.k_SK = 0.8  # uM
-        self.B_c = 90  # microMolar
-        self.F = constants.physical_constants['Faraday constant'][0] #C mol^-1
+        self.setValues_Repeats()
 
     def setValues_alt(self):
         #Units
         # Initialize conductance
-        self.g_NaT = 7.2603 * conversionFactor_mToU
-        self.g_NaP = 0.0423 * conversionFactor_mToU
-        self.g_CaT = 0.067 * conversionFactor_mToU
-        self.g_CaH = 1.5208 * conversionFactor_mToU
-        self.g_KDR = 12.505 * conversionFactor_mToU
-        self.g_KM = 3.3837 * conversionFactor_mToU
-        self.g_L = 0.0035 * conversionFactor_mToU
-        self.g_H = 0.0503 * conversionFactor_mToU
+        self.g_NaT = 7.2603
+        self.g_NaP = 0.0423
+        self.g_CaT = 0.067
+        self.g_CaH = 1.5208
+        self.g_KDR = 12.505
+        self.g_KM = 3.3837
+        self.g_L = 0.0035
+        self.g_H = 0.0503
         # Initialize gating variable
-        self.m_NaT_inf = 0
-        self.m_NaP_inf = 0
         self.m_CaT0 = 0.005486594704365255
         self.m_CaH0 = 2.260443363987366e-06
         self.m_KDR0 = 0.0014881270089334075
@@ -239,9 +181,16 @@ class HogdkinHuxley:
         self.h_CaH0 = 0.9456737145278049
         self.h_KDR0 = 0.7694232333411584
         self.n_H0 = 0.024919369791676596
-        self.p = 0.85
         # Half activation voltage
         self.Vm_NaT = -60
+        self.setValues_Repeats()
+
+    def setValues_Repeats(self):
+        # Initialize gating variable
+        self.m_NaT_inf = 0
+        self.m_NaP_inf = 0
+        self.p = 0.85
+        # Half activation voltage
         self.Vm_NaP = -47
         self.Vm_CaT = -54
         self.Vm_CaH = -15
@@ -285,18 +234,18 @@ class HogdkinHuxley:
         # Membrane voltage
         self.V0 = -80
         # Conductance
-        self.C = 1 * conversionFactor_mToU
-        #Calcium
-        self.k_d = 0.1 #um
-        self.A = 3000 #um^2
-        self.d = 0.1 #um
-        self.gamma = 0.01 #ms-1
-        self.Ca_cr = 0.07 #um
-        self.g_SK = 10 #nS
-        self.k_SK = 0.8 #uM
-        self.B_c = 90 #microMolar
+        self.C = 1
+        # Calcium
+        self.k_d = 0.1  # um
+        self.A = 3000  # um^2
+        self.d = 0.1  # um
+        self.gamma = 0.01  # ms-1
+        self.Ca_cr = 0.07  # um
+        self.g_SK = 10  #* 1500# nS
+        self.k_SK = 0.8  # uM
+        self.B_c = 90  # microMolar
         self.Ca_c0 = self.Ca_cr
-        self.F = constants.physical_constants['Faraday constant'][0] #C mol^-1
+        self.F = constants.physical_constants['Faraday constant'][0] * 1e-6  # C mol^-1 converted to smaller version from paper
 
     def updateValues(self, m_CaT0, m_CaH0, m_KDR0, m_KM0, m_H0, h_NaT0, h_CaT0, h_CaH0, h_KDR0, n_H0):
         self.m_CaT0 = m_CaT0
@@ -371,6 +320,7 @@ class HogdkinHuxley:
             # print("t_I_H " + str(self.t_I_H[-1]))
             # print("hCaT " + str(self.t_h_CaT[-1]))
             # print("hCaT_INF " + str(boltzmann(z[10][-1], self.Vh_CaT, self.kh_CaT)))
+            # print("t_I_SK " + str(self.t_I_SK[-1]))
 
             #Deal with t_eval
             self.length_tracker = np.append(self.length_tracker,self.length)
@@ -443,16 +393,25 @@ class HogdkinHuxley:
         plt.plot(self.final_t_eval, self.t_I_H, label="H")
         plt.plot(self.final_t_eval, self.t_I_SK, label="SK")
         plt.xlabel("Time (ms)")
-        plt.ylabel("Current (uA/cm^2)")
+        plt.ylabel("Current (nA/cm^2)")
         plt.legend(loc="upper right")
         plt.title("Channel Currents")
         plt.savefig(saveLocation + str(saveNumber) + ".Channel Current Timeseries" + ".png")
         plt.show()
 
+    def plotCalciumCurrent(self, saveLocation, saveNumber):
+        plt.plot(self.final_t_eval, self.t_I_CaT + self.t_I_CaH, label="I_Ca")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Current (nA/cm^2)")
+        plt.legend(loc="upper right")
+        plt.title("ICa")
+        plt.savefig(saveLocation + str(saveNumber) + ".ICa" + ".png")
+        plt.show()
+
     def plotCalciumConcentration(self, saveLocation, saveNumber):
         plt.plot(self.final_t_eval, self.t_Ca)
         plt.xlabel("Time (ms)")
-        plt.ylabel("[Ca]")
+        plt.ylabel("[Ca] (uM)")
         plt.title("Calcium Concentration")
         plt.savefig(saveLocation + str(saveNumber) + ".Calcium Concentration" + ".png")
         plt.show()
