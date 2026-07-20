@@ -13,7 +13,7 @@ from utils import sphereArea, residuals, printText
 class ExperimentManager:
     def __init__(self, peakCurrent):
         self.experimentsRun = 0
-        self.saveLocation = "./Runs/300pA/"
+        self.saveLocation = "./Adaptation/300pA/"
         self.neuron = HogdkinHuxley()
         self.neuron.setValues_alt()
         self.starting_I_hold =  -0.20956573344994844
@@ -112,6 +112,8 @@ class ExperimentManager:
                 #valueArray = np.column_stack((np.full((len(g_SK_Array),1),self.starting_I_hold),np.full((len(g_SK_Array),1),self.peakCurrent), np.array(range(len(g_SK_Array))) + 1, g_SK_Array, k_SK_Array))
                 pool_obj = multiprocessing.Pool()
                 pool_obj.starmap(permute, valueArray)
+                pool_obj.close()
+                pool_obj.join()
         self.experimentsRun += 1
     def plotingSuite(self, text):
         print("Ploting preparation")

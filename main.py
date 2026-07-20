@@ -11,12 +11,12 @@ from ExperimentManager import ExperimentManager
 
 if __name__ == '__main__':
 
-    CoolExperiment = ExperimentManager(3)
+    CoolExperiment = ExperimentManager(2)
     # CoolExperiment.run("Optimize")
-    # CoolExperiment.run("Constant")
+    CoolExperiment.run("Constant")
     # CoolExperiment.run("Restart")
     # CoolExperiment.run("Step")
     # CoolExperiment.run("Restart")
     # CoolExperiment.run("Chirp")
     # CoolExperiment.run("PermutationTesting2")
-    CoolExperiment.run("PermutationTesting")
+    # CoolExperiment.run("PermutationTesting")
