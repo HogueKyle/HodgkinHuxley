@@ -11,7 +11,7 @@ from ExperimentManager import ExperimentManager
 
 if __name__ == '__main__':
 
-    CoolExperiment = ExperimentManager(2)
+    CoolExperiment = ExperimentManager(1)
     # CoolExperiment.run("Optimize")
     CoolExperiment.run("Constant")
     # CoolExperiment.run("Restart")

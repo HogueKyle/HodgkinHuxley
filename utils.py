@@ -43,7 +43,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
 
     # Calcium
     # dCa_c = ((1 + B_c / k_d) ** -1) * (((-(I_CaH + I_CaT) / (2*A*F*d))*1e-9) - gamma * (Ca_c - Ca_cr)) if useSK else 0
-    dCa_c = ((1 + B_c / k_d) ** -1) * (((-(I_CaH + I_CaT) / (2*A*F*d))) - gamma * (Ca_c - Ca_cr)) if useSK else 0
+    dCa_c = ((1 + B_c / k_d) ** -1) * (((-(I_CaH + I_CaT) / (2*A*F*d))) - gamma * (Ca_c)) if useSK else 0
 
     #Voltage
     if voltageRateIncrease:
@@ -114,7 +114,7 @@ def residuals(x, current, a, b, c, d, model):
     return (abs(abs(-80) - abs(vPrime)))
 
 def printText(text, saveLocation, saveNumber):
-    plt.text(0.5,0.5, text, fontsize=20, horizontalalignment="center", verticalalignment="center", fontstretch="ultra-expanded")
+    plt.text(0.5,0.5, text, fontsize=20, horizontalalignment="center", verticalalignment="center", fontstretch="ultra-expanded", wrap=True)
     plt.axis('off')
     plt.savefig(saveLocation + str(saveNumber) + ".1.Experiment Title" + ".png")
     plt.show()

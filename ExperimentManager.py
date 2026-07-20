@@ -13,7 +13,7 @@ from utils import sphereArea, residuals, printText
 class ExperimentManager:
     def __init__(self, peakCurrent):
         self.experimentsRun = 0
-        self.saveLocation = "./Adaptation/300pA/"
+        self.saveLocation = "./Out/"
         self.neuron = HogdkinHuxley()
         self.neuron.setValues_alt()
         self.starting_I_hold =  -0.20956573344994844
@@ -64,13 +64,9 @@ class ExperimentManager:
                 self.plotingSuite("Step Current " + str(self.peakCurrent * 100) + "pA for 500mS")
             case "Constant":
                 print("Running Constant Current Experiment")
-                #current = WhiteNoise(0, 1000)
-                #self.neuron.runModel(self.I_hold, current, True, False, True, False)
-                # topCurrent =  1.5e-7 / sphereArea(0.0028)
-                # topCurrent =  3e-7 / sphereArea(0.0025)
                 current = WhiteNoise(0, 1000)
                 self.neuron.runModel(self.I_hold, current, True, True, False, True, True)
-                current = WhiteNoise(self.peakCurrent, 1000)
+                current = WhiteNoise(self.peakCurrent, 500)
                 self.neuron.runModel(self.I_hold, current, True, True, True, True, True)
                 self.plotingSuite("Constant Current " + str(self.peakCurrent * 100) + "pA")
             case "Chirp":

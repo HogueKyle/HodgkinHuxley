@@ -242,6 +242,7 @@ class HogdkinHuxley:
         self.gamma = 0.01  # ms-1
         self.Ca_cr = 0.07  # um
         self.g_SK = 10  #* 1500# nS
+        # self.k_SK = 0.73  # uM
         self.k_SK = 0.8  # uM
         self.B_c = 90  # microMolar
         self.Ca_c0 = self.Ca_cr
