@@ -18,7 +18,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     h_CaH0 = y0[7]
     h_KDR0 = y0[8]
     n_H0 = y0[9]
-    V0 = y0[10]
+    V0 = y0[10] * 1000
     Ca_c = y0[11]
 
     # Non derivative gating functions
@@ -26,7 +26,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     m_NaP = boltzmann(V0, Vm_NaP, km_NaP)
 
     #Variable time constant
-    tau_h_NaT = 0.2 + 0.007 * (np.exp(np.exp(-(V0 - 40.6)/51.4)))
+    tau_h_NaT = timeConstant(V0)
 
     #Currents
     I_NaT = I_NaT_get(g_NaT, m_NaT, h_NaT0, V0, E_Na)
@@ -36,7 +36,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     I_KDR = I_KDR_get(g_KDR, m_KDR0, h_KDR0, V0, E_K)
     I_KM = I_KM_get(g_KM, m_KM0, V0, E_K)
     I_L = I_L_get(g_L, V0, E_L)
-    I_H = I_H_get(g_H, p, m_H0, n_H0, V0, E_H)
+    I_H = 0
 
     #Currents I_SK
     I_SK = I_SK_get(g_SK, Ca_c, k_SK, V0, E_K) if useSK else 0
@@ -47,7 +47,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
 
     #Voltage
     if voltageRateIncrease:
-        dV = ((I_app.getCurrent(t) + I_hold - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L - I_H  - I_SK)) / C
+        dV = ((I_app.getCurrent(t) - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L)) / C
     else:
         dV = 0
 
@@ -60,8 +60,8 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     dm_KDR = gateDerivative(V0, Vm_KDR, km_KDR, m_KDR0, tau_m_KDR)
     dh_KDR = gateDerivative(V0, Vh_KDR, kh_KDR, h_KDR0, tau_h_KDR)
     dm_KM = gateDerivative(V0, Vm_KM, km_KM, m_KM0, tau_m_KM)
-    dm_H = gateDerivative(V0, Vm_H, km_H, m_H0, tau_m_H)
-    dn_H = gateDerivative(V0, Vn_H, kn_H, n_H0, tau_n_H)
+    dm_H = 0
+    dn_H = 0
 
     #Pack
     y = np.array([dm_CaT, dm_CaH, dm_KDR, dm_KM, dm_H, dh_NaT, dh_CaT, dh_CaH, dh_KDR, dn_H, dV, dCa_c]).T
@@ -105,13 +105,17 @@ def I_H_get(g_H, p, m_H0, n_H0, V0, E_H):
 def I_SK_get(g_SK, Ca_c, k_SK, V0, E_K):
     return g_SK * ((Ca_c ** 5) / ((k_SK ** 5) + (Ca_c ** 5))) * (V0 - E_K)
 
+def timeConstant(V0):
+    return 0.2 + 0.007 * (np.exp(np.exp(-(V0 - 40.6)/51.4)))
+
 def sphereArea(r):
     return 4 * np.pi * r ** 2
 
-def residuals(x, current, a, b, c, d, model):
-    vPrime = model.runModel(x[0], current, a, b, c, d)[10, -1]
-    print("Voltage " + str(vPrime) + " , Current " + str(x[0]) + " , Cost " + str(abs(abs(-80) - abs(vPrime))))
-    return (abs(abs(-80) - abs(vPrime)))
+def residuals(x, current, a, b, c, d, e, model):
+    target = -75.5
+    vPrime = model.runModel(x[0], current, a, b, c, d, e)[10, -1]
+    print("Voltage " + str(vPrime) + " , Current " + str(x[0]) + " , Cost " + str(abs(target - vPrime)))
+    return (abs(target - vPrime))
 
 def printText(text, saveLocation, saveNumber):
     plt.text(0.5,0.5, text, fontsize=20, horizontalalignment="center", verticalalignment="center", fontstretch="ultra-expanded", wrap=True)

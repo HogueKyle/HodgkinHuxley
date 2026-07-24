@@ -5,7 +5,7 @@ from scipy.integrate import solve_ivp
 from scipy import constants
 from matplotlib import pyplot as plt
 from utils import model, boltzmann, I_NaT_get, I_NaP_get, I_CaT_get, I_CaH_get, I_KDR_get, \
-    I_KM_get, I_L_get, I_H_get, I_SK_get, conversionFactor_mToU, conversionFactor_nToM
+    I_KM_get, I_L_get, I_H_get, I_SK_get, conversionFactor_mToU, conversionFactor_nToM, timeConstant
 
 
 class HogdkinHuxley:
@@ -133,43 +133,17 @@ class HogdkinHuxley:
         self.t_Ca = np.array([])
         self.t_I_SK = np.array([])
 
-    def setValues(self):
+    def setValues_alt(self):
         #Units
         # Initialize conductance
-        self.g_NaT = 65.0
+        self.g_NaT = 65 #Labeled gS in paper, assuming this is correct
         self.g_NaP = 0.1
         self.g_CaT = 0.6
         self.g_CaH = 0.74
         self.g_KDR = 9.5
         self.g_KM = 0.8
         self.g_L = 0.02
-        self.g_H = 0.05
-        # Initialize gating variable
-        self.m_CaT0 = 0.005499631115330787
-        self.m_CaH0 = 2.2658458242948663e-06
-        self.m_KDR0 = 0.0014881270089334075
-        self.m_KM0 = 0.0067010649216514805
-        self.m_H0 = 0.15534913916228063
-        self.h_NaT0 = 0.6709528877756887
-        self.h_CaT0 = 0.8536179164156359
-        self.h_CaH0 = 0.9455957087204464
-        self.h_KDR0 = 0.7721798208565878
-        self.n_H0 = 0.024873681844352076
-        # Half activation voltage
-        self.Vm_NaT = -37
-        self.setValues_Repeats()
-
-    def setValues_alt(self):
-        #Units
-        # Initialize conductance
-        self.g_NaT = 7.2603
-        self.g_NaP = 0.0423
-        self.g_CaT = 0.067
-        self.g_CaH = 1.5208
-        self.g_KDR = 12.505
-        self.g_KM = 3.3837
-        self.g_L = 0.0035
-        self.g_H = 0.0503
+        self.g_H = 0.0503 #Does not exist
         # Initialize gating variable
         self.m_CaT0 = 0.005486594704365255
         self.m_CaH0 = 2.260443363987366e-06
@@ -182,26 +156,26 @@ class HogdkinHuxley:
         self.h_KDR0 = 0.7694232333411584
         self.n_H0 = 0.024919369791676596
         # Half activation voltage
-        self.Vm_NaT = -60
+        self.Vm_NaT = -37
         self.setValues_Repeats()
 
     def setValues_Repeats(self):
         # Initialize gating variable
         self.m_NaT_inf = 0
         self.m_NaP_inf = 0
-        self.p = 0.85
+        self.p = 0.85 #Does not exist
         # Half activation voltage
         self.Vm_NaP = -47
         self.Vm_CaT = -54
         self.Vm_CaH = -15
         self.Vm_KDR = -5.8
         self.Vm_KM = -30
-        self.Vm_H = -102
+        self.Vm_H = -102 #Does not exist
         self.Vh_NaT = -75
         self.Vh_CaT = -65
         self.Vh_CaH = -60
         self.Vh_KDR = -68
-        self.Vn_H = -102
+        self.Vn_H = -102 #Does not exist
         # Boltzman constants
         self.km_NaT = 5
         self.km_NaP = 3
@@ -209,18 +183,18 @@ class HogdkinHuxley:
         self.km_CaH = 5
         self.km_KDR = 11.4
         self.km_KM = 10
-        self.km_H = -13
+        self.km_H = -13 #Does not exist
         self.kh_NaT = -7
         self.kh_CaT = -8.5
         self.kh_CaH = -7
         self.kh_KDR = -9.7
-        self.kn_H = -6
+        self.kn_H = -6 #Does not exist
         # Initialize time constant
         self.tau_m_CaT = 2
         self.tau_m_CaH = 0.08
         self.tau_m_KDR = 1
         self.tau_m_KM = 75
-        self.tau_m_H = 15
+        self.tau_m_H = 15 #Does not exist
         self.tau_h_CaT = 32
         self.tau_h_CaH = 300
         self.tau_h_KDR = 1400
@@ -230,9 +204,9 @@ class HogdkinHuxley:
         self.E_Ca = 90
         self.E_K = -85
         self.E_L = -65
-        self.E_H = -30
+        self.E_H = -30 #Does not exist
         # Membrane voltage
-        self.V0 = -80
+        self.V0 = -75.5
         # Conductance
         self.C = 1
         # Calcium
@@ -348,6 +322,7 @@ class HogdkinHuxley:
         plt.plot(self.final_t_eval, self.t_V)
         plt.xlabel("Time (ms)")
         plt.ylabel("mV")
+        plt.ylim([-0.08, 0.08])
         if additionalText != "":
             additionalText = " " + additionalText
         plt.title("Voltage Trace" + additionalText)
@@ -380,7 +355,69 @@ class HogdkinHuxley:
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        plt.savefig(saveLocation + str(saveNumber) + ".4.Gating Variable Timeseries" + ".png")
+        # plt.savefig(saveLocation + str(saveNumber) + ".4.Gating Variable Timeseries" + ".png")
+        plt.show()
+
+    def plotChannelTimeSeriesVoltage(self):
+        plt.scatter(self.t_V, self.t_m_NaT, label="mNaT")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Gating variables")
+        plt.title("Gating Variables")
+        plt.legend(loc="upper right")
+        plt.show()
+        plt.scatter(self.t_V, self.t_m_NaP, label="mNaP")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Gating variables")
+        plt.title("Gating Variables")
+        plt.legend(loc="upper right")
+        plt.show()
+        plt.scatter(self.t_V, self.t_m_CaT, label="mCaT")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Gating variables")
+        plt.title("Gating Variables")
+        plt.legend(loc="upper right")
+        plt.show()
+        plt.scatter(self.t_V, self.t_m_CaH, label="mCaH")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Gating variables")
+        plt.title("Gating Variables")
+        plt.legend(loc="upper right")
+        plt.show()
+        plt.scatter(self.t_V, self.t_m_KDR, label="mKDR")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Gating variables")
+        plt.title("Gating Variables")
+        plt.legend(loc="upper right")
+        plt.show()
+        plt.scatter(self.t_V, self.t_m_KM, label="mKM")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Gating variables")
+        plt.title("Gating Variables")
+        plt.legend(loc="upper right")
+        plt.show()
+        plt.scatter(self.t_V, self.t_h_NaT, label="hNaT")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Gating variables")
+        plt.title("Gating Variables")
+        plt.legend(loc="upper right")
+        plt.show()
+        plt.scatter(self.t_V, self.t_h_CaT, label="hCaT")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Gating variables")
+        plt.title("Gating Variables")
+        plt.legend(loc="upper right")
+        plt.show()
+        plt.scatter(self.t_V, self.t_h_CaH, label="hCaH")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Gating variables")
+        plt.title("Gating Variables")
+        plt.legend(loc="upper right")
+        plt.show()
+        plt.scatter(self.t_V, self.t_h_KDR, label="hKDR")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Gating variables")
+        plt.title("Gating Variables")
+        plt.legend(loc="upper right")
         plt.show()
 
     def plotChannelCurrentsTimeSeries(self, saveLocation, saveNumber):
@@ -390,9 +427,9 @@ class HogdkinHuxley:
         plt.plot(self.final_t_eval, self.t_I_CaH, label="CaH")
         plt.plot(self.final_t_eval, self.t_I_KDR, label="KDR")
         plt.plot(self.final_t_eval, self.t_I_KM, label="KM")
-        plt.plot(self.final_t_eval, self.t_I_L, label="L")
-        plt.plot(self.final_t_eval, self.t_I_H, label="H")
-        plt.plot(self.final_t_eval, self.t_I_SK, label="SK")
+        # plt.plot(self.final_t_eval, self.t_I_L, label="L")
+        # plt.plot(self.final_t_eval, self.t_I_H, label="H")
+        # plt.plot(self.final_t_eval, self.t_I_SK, label="SK")
         plt.xlabel("Time (ms)")
         plt.ylabel("Current (nA/cm^2)")
         plt.legend(loc="upper right")
@@ -419,3 +456,55 @@ class HogdkinHuxley:
 
     def prepareToPlot(self):
         self.final_t_eval = np.arange(0, self.length_tracker.sum(), self.step)
+
+    def plotGatingPerVoltageTrace(self):
+        V_array = np.linspace(-100, 40, 1000)
+        V_array2 = np.linspace(-50, 40, 1000)
+        mNaT = np.zeros(len(V_array))
+        hNaT = np.zeros(len(V_array))
+        mNaP = np.zeros(len(V_array))
+        mCaT = np.zeros(len(V_array))
+        hCaT = np.zeros(len(V_array))
+        mCaH = np.zeros(len(V_array))
+        hCaH = np.zeros(len(V_array))
+        mKM = np.zeros(len(V_array))
+        mKDR = np.zeros(len(V_array))
+        hKDR = np.zeros(len(V_array))
+        ThNaT = np.zeros(len(V_array2))
+        for i, V in enumerate(V_array):
+            mNaT[i] = boltzmann(V, self.Vm_NaT, self.km_NaT)
+            hNaT[i] = boltzmann(V, self.Vh_NaT, self.kh_NaT)
+            mNaP[i] = boltzmann(V, self.Vm_NaP, self.km_NaP)
+            mCaT[i] = boltzmann(V, self.Vm_CaT, self.km_CaT)
+            hCaT[i] = boltzmann(V, self.Vh_CaT, self.kh_CaT)
+            mCaH[i] = boltzmann(V, self.Vm_CaH, self.km_CaH)
+            hCaH[i] = boltzmann(V, self.Vh_CaH, self.kh_CaH)
+            mKM[i] = boltzmann(V, self.Vm_KM, self.km_KM)
+            mKDR[i] = boltzmann(V, self.Vm_KDR, self.km_KDR)
+            hKDR[i] = boltzmann(V, self.Vh_KDR, self.kh_KDR)
+            ThNaT[i] = timeConstant(V)
+        plt.plot(V_array, mNaT, label="mNaT")
+        plt.plot(V_array, hNaT, label="hNaT")
+        plt.plot(V_array, mNaP, label="mNaP")
+        plt.xlabel("Voltage (mV)")
+        plt.legend()
+        plt.show()
+        plt.plot(V_array, mCaT, label="mCaT")
+        plt.plot(V_array, hCaT, label="hCaT")
+        plt.plot(V_array, mCaH, label="mCaH")
+        plt.plot(V_array, hCaH, label="hCaH")
+        plt.xlabel("Voltage (mV)")
+        plt.legend()
+        plt.show()
+        plt.plot(V_array, mKM, label="mKM")
+        plt.plot(V_array, mKDR, label="mKDR")
+        plt.plot(V_array, hKDR, label="hKDR")
+        plt.xlabel("Voltage (mV)")
+        plt.legend()
+        plt.show()
+        for i, V in enumerate(V_array2):
+            ThNaT[i] = timeConstant(V)
+        plt.plot(V_array2, ThNaT, label="ThNaT")
+        plt.xlabel("Voltage (mV)")
+        plt.legend()
+        plt.show()

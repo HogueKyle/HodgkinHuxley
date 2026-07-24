@@ -16,8 +16,8 @@ class ExperimentManager:
         self.saveLocation = "./Out/"
         self.neuron = HogdkinHuxley()
         self.neuron.setValues_alt()
-        self.starting_I_hold =  -0.20956573344994844
-        self.I_hold = self.starting_I_hold
+        # self.starting_I_hold =  -0.20956573344994844
+        self.I_hold = -0.0047399334213286595
         # self.I_hold = -0.00020956573344785734
         self.peakCurrent = peakCurrent
     def run(self, experiment):
@@ -29,13 +29,13 @@ class ExperimentManager:
                 self.I_hold = self.starting_I_hold
             case "Optimize":
                 print("Optimizing hold current and starting variables")
-                x0 = -5
-                current = WhiteNoise(0, 1000)
-                result = least_squares(residuals, x0, args=[current, True, False, False, False, self.neuron], bounds=[-5,5], diff_step=0.1, xtol=1e-13) #You changed the scaling for g from 1000 to 1 and this shit has a tiny step size for some reason
+                x0 = 4
+                current = WhiteNoise(0, 2000)
+                result = least_squares(residuals, x0, args=[current, True, False, False, False, False, self.neuron], bounds=[-5,5], diff_step=0.1, xtol=1e-13) #You changed the scaling for g from 1000 to 1 and this shit has a tiny step size for some reason
                 print("Hold current: " + str(result.x[0]))
                 #Update initial gating variable
                 self.I_hold = result.x[0]
-                z = self.neuron.runModel(self.I_hold, current, True, False, False, False, False)
+                z = self.neuron.runModel(self.I_hold, current, True, False, False, True, False)
                 print("-------")
                 print("m_CaT0 :" + str(z[0, -1]))
                 print("m_CaH0 :" + str(z[1, -1]))
@@ -49,14 +49,16 @@ class ExperimentManager:
                 print("n_H0 :" + str(z[9, -1]))
                 print("V0 :" + str(z[10, -1]))
                 print("-------")
-                self.neuron.updateValues(z[0, -1], z[1, -1], z[2, -1], z[3, -1], z[4, -1], z[5, -1], z[6, -1], z[7, -1], z[8, -1], z[9, -1])
+                # self.neuron.updateValues(z[0, -1], z[1, -1], z[2, -1], z[3, -1], z[4, -1], z[5, -1], z[6, -1], z[7, -1], z[8, -1], z[9, -1])
             case "Step":
                 print("Running Step Experiment")
                 # Run step current
-                current = WhiteNoise(0, 1000)
-                self.neuron.runModel(self.I_hold, current, True, False, False, True, True)
+                # current = WhiteNoise(0, 1000)
+                # self.neuron.runModel(self.I_hold, current, True, False, False, True, True)
                 current = WhiteNoise(0, 500)
                 self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
+                # current = WhiteNoise(0, 500)
+                # self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
                 current = WhiteNoise(self.peakCurrent, 500)
                 self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
                 current = WhiteNoise(0, 500)
@@ -69,6 +71,7 @@ class ExperimentManager:
                 current = WhiteNoise(self.peakCurrent, 500)
                 self.neuron.runModel(self.I_hold, current, True, True, True, True, True)
                 self.plotingSuite("Constant Current " + str(self.peakCurrent * 100) + "pA")
+                # self.neuron.plotChannelTimeSeriesVoltage()
             case "Chirp":
                 # Run chirp current
                 current = WhiteNoise(0, 1000)
@@ -110,6 +113,8 @@ class ExperimentManager:
                 pool_obj.starmap(permute, valueArray)
                 pool_obj.close()
                 pool_obj.join()
+            case "Debug":
+                self.neuron.plotGatingPerVoltageTrace()
         self.experimentsRun += 1
     def plotingSuite(self, text):
         print("Ploting preparation")
