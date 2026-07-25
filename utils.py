@@ -7,6 +7,7 @@ conversionFactor_nToM = 1000000 #Maybe 1000
 #Define units
 
 def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, Vm_NaT, Vm_NaP, Vm_CaT, Vm_CaH, Vm_KDR, Vm_KM, Vm_H, Vh_NaT, Vh_CaT, Vh_CaH, Vh_KDR, Vn_H, km_NaT, km_NaP, km_CaT, km_CaH, km_KDR, km_KM, km_H, kh_NaT, kh_CaT, kh_CaH, kh_KDR, kn_H, tau_m_CaT, tau_m_CaH, tau_m_KDR, tau_m_KM, tau_m_H, tau_h_CaT, tau_h_CaH, tau_h_KDR, tau_n_H, E_Na, E_Ca, E_K, E_L, E_H, C, k_d, A, d, gamma, Ca_cr, g_SK, k_SK, B_c, F, I_app, voltageRateIncrease, useSK, verbose):
+
     # Unpack
     m_CaT0 = y0[0]
     m_CaH0 = y0[1]
@@ -18,8 +19,11 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     h_CaH0 = y0[7]
     h_KDR0 = y0[8]
     n_H0 = y0[9]
-    V0 = y0[10] * 1000
+    V0 = y0[10]
     Ca_c = y0[11]
+
+    if V0 > 40:
+        print("AP!")
 
     # Non derivative gating functions
     m_NaT = boltzmann(V0, Vm_NaT, km_NaT)
@@ -39,7 +43,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     I_H = 0
 
     #Currents I_SK
-    I_SK = I_SK_get(g_SK, Ca_c, k_SK, V0, E_K) if useSK else 0
+    # I_SK = I_SK_get(g_SK, Ca_c, k_SK, V0, E_K) if useSK else 0
 
     # Calcium
     # dCa_c = ((1 + B_c / k_d) ** -1) * (((-(I_CaH + I_CaT) / (2*A*F*d))*1e-9) - gamma * (Ca_c - Ca_cr)) if useSK else 0
@@ -62,6 +66,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     dm_KM = gateDerivative(V0, Vm_KM, km_KM, m_KM0, tau_m_KM)
     dm_H = 0
     dn_H = 0
+
 
     #Pack
     y = np.array([dm_CaT, dm_CaH, dm_KDR, dm_KM, dm_H, dh_NaT, dh_CaT, dh_CaH, dh_KDR, dn_H, dV, dCa_c]).T

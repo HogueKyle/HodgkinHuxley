@@ -10,12 +10,12 @@ from ExperimentManager import ExperimentManager
 # #Run steady state
 
 if __name__ == '__main__':
-
+#Paper from https://research-information.bris.ac.uk/ws/portalfiles/portal/3018849/pyr_neur_model_preprint.pdf
     CoolExperiment = ExperimentManager(2)
     # CoolExperiment.run("Optimize")
-    # CoolExperiment.run("Constant")
+    CoolExperiment.run("Constant")
     # CoolExperiment.run("Restart")
-    CoolExperiment.run("Step")
+    # CoolExperiment.run("Step")
     # CoolExperiment.run("Restart")
     # CoolExperiment.run("Chirp")
     # CoolExperiment.run("PermutationTesting2")

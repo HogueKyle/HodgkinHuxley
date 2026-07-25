@@ -135,34 +135,24 @@ class HogdkinHuxley:
 
     def setValues_alt(self):
         #Units
+        # Membrane voltage
+        self.V0 = -75.5
         # Initialize conductance
-        self.g_NaT = 65 #Labeled gS in paper, assuming this is correct
+        self.g_NaT = 65
+        #Labeled gS in paper, assuming this is correct
         self.g_NaP = 0.1
         self.g_CaT = 0.6
-        self.g_CaH = 0.74
+        self.g_CaH = 2.6  #0.74
         self.g_KDR = 9.5
         self.g_KM = 0.8
         self.g_L = 0.02
         self.g_H = 0.0503 #Does not exist
-        # Initialize gating variable
-        self.m_CaT0 = 0.005486594704365255
-        self.m_CaH0 = 2.260443363987366e-06
-        self.m_KDR0 = 0.0014881270089334075
-        self.m_KM0 = 0.006693236665689997
-        self.m_H0 = 0.1554691454071592
-        self.h_NaT0 = 0.6713104329954209
-        self.h_CaT0 = 0.8537921873675318
-        self.h_CaH0 = 0.9456737145278049
-        self.h_KDR0 = 0.7694232333411584
-        self.n_H0 = 0.024919369791676596
+
         # Half activation voltage
         self.Vm_NaT = -37
-        self.setValues_Repeats()
 
-    def setValues_Repeats(self):
         # Initialize gating variable
-        self.m_NaT_inf = 0
-        self.m_NaP_inf = 0
+
         self.p = 0.85 #Does not exist
         # Half activation voltage
         self.Vm_NaP = -47
@@ -205,8 +195,6 @@ class HogdkinHuxley:
         self.E_K = -85
         self.E_L = -65
         self.E_H = -30 #Does not exist
-        # Membrane voltage
-        self.V0 = -75.5
         # Conductance
         self.C = 1
         # Calcium
@@ -221,6 +209,34 @@ class HogdkinHuxley:
         self.B_c = 90  # microMolar
         self.Ca_c0 = self.Ca_cr
         self.F = constants.physical_constants['Faraday constant'][0] * 1e-6  # C mol^-1 converted to smaller version from paper
+
+        # Initialize gating variable
+        # self.m_CaT0 = 0.005486594704365255
+        # self.m_CaH0 = 2.260443363987366e-06
+        # self.m_KDR0 = 0.0014881270089334075
+        # self.m_KM0 = 0.006693236665689997
+        # self.m_H0 = 0.1554691454071592
+        # self.h_NaT0 = 0.6713104329954209
+        # self.h_CaT0 = 0.8537921873675318
+        # self.h_CaH0 = 0.9456737145278049
+        # self.h_KDR0 = 0.7694232333411584
+        # self.n_H0 = 0.024919369791676596
+
+        self.m_CaT0 = boltzmann(self.V0, self.Vm_CaT, self.km_CaT)
+        self.m_CaH0 = boltzmann(self.V0, self.Vm_CaH, self.km_CaH)
+        self.m_KDR0 = boltzmann(self.V0, self.Vm_KDR, self.km_KDR)
+        self.m_KM0 = boltzmann(self.V0, self.Vm_KM, self.km_KM)
+        self.m_H0 = boltzmann(self.V0, self.Vm_H, self.km_H)
+        self.h_NaT0 = boltzmann(self.V0, self.Vh_NaT, self.kh_NaT)
+        self.h_CaT0 = boltzmann(self.V0, self.Vh_CaT, self.kh_CaT)
+        self.h_CaH0 = boltzmann(self.V0, self.Vh_CaH, self.kh_CaH)
+        self.h_KDR0 = boltzmann(self.V0, self.Vh_KDR, self.kh_KDR)
+        self.n_H0 = boltzmann(self.V0, self.Vn_H, self.kn_H)
+
+
+
+
+
 
     def updateValues(self, m_CaT0, m_CaH0, m_KDR0, m_KM0, m_H0, h_NaT0, h_CaT0, h_CaH0, h_KDR0, n_H0):
         self.m_CaT0 = m_CaT0
@@ -249,57 +265,100 @@ class HogdkinHuxley:
         z = ODEresults.y
         if verbose:
             print(ODEresults.message)
+
         #Unpack
         if memory: #Save timeseries
             if verbose:
                 print("Saving ODE time series")
-            #Time series
-            self.t_m_CaT = np.append(self.t_m_CaT, z[0])
-            self.t_m_CaH = np.append(self.t_m_CaH, z[1])
-            self.t_m_KDR = np.append(self.t_m_KDR, z[2])
-            self.t_m_KM = np.append(self.t_m_KM, z[3])
-            self.t_m_H = np.append(self.t_m_H, z[4])
-            self.t_h_NaT = np.append(self.t_h_NaT, z[5])
-            self.t_h_CaT = np.append(self.t_h_CaT, z[6])
-            self.t_h_CaH = np.append(self.t_h_CaH, z[7])
-            self.t_h_KDR = np.append(self.t_h_KDR, z[8])
-            self.t_n_H = np.append(self.t_n_H, z[9])
-            self.t_V = np.append(self.t_V, z[10])
-            self.t_Ca = np.append(self.t_Ca, z[11])
-            self.t_I_app = np.append(self.t_I_app, I_app.getMultipleCurrents(self.t_eval))
 
+
+            arraySize = len(self.t_eval)
+
+            #Create temporary arrays
+            small_t_m_NaT = np.zeros(arraySize)
+            small_t_m_NaP = np.zeros(arraySize)
+            small_t_I_NaT = np.zeros(arraySize)
+            small_t_I_NaP = np.zeros(arraySize)
+            small_t_I_CaT = np.zeros(arraySize)
+            small_t_I_CaH = np.zeros(arraySize)
+            small_t_I_KDR = np.zeros(arraySize)
+            small_t_I_KM = np.zeros(arraySize)
+            small_t_I_L = np.zeros(arraySize)
+            small_t_I_H = np.zeros(arraySize)
+            small_t_I_SK = np.zeros(arraySize)
+
+            #Time series of individual run
+            small_t_m_CaT = z[0]
+            small_t_m_CaH = z[1]
+            small_t_m_KDR = z[2]
+            small_t_m_KM = z[3]
+            small_t_m_H = z[4]
+            small_t_h_NaT = z[5]
+            small_t_h_CaT = z[6]
+            small_t_h_CaH = z[7]
+            small_t_h_KDR = z[8]
+            small_t_n_H = z[9]
+            small_t_V = z[10]
+            small_t_Ca = z[11]
+            small_t_I_app = I_app.getMultipleCurrents(self.t_eval)
+
+            #Calculate non ODE time series
             if verbose:
                 print("Deriving time series")
-            for i,voltage in enumerate(z[10]):
-                self.t_m_NaT = np.append(self.t_m_NaT, boltzmann(voltage, self.Vm_NaT, self.km_NaT))
-                self.t_m_NaP = np.append(self.t_m_NaP, boltzmann(voltage, self.Vm_NaP, self.km_NaP))
-                self.t_I_NaT = np.append(self.t_I_NaT, I_NaT_get(self.g_NaT, self.t_m_NaT[i], self.t_h_NaT[i], voltage, self.E_Na))
-                self.t_I_NaP = np.append(self.t_I_NaP, I_NaP_get(self.g_NaP, self.t_m_NaP[i], voltage, self.E_Na))
-                self.t_I_CaT = np.append(self.t_I_CaT, I_CaT_get(self.g_CaT, self.t_m_CaT[i], self.t_h_CaT[i], voltage, self.E_Ca))
-                self.t_I_CaH = np.append(self.t_I_CaH, I_CaH_get(self.g_CaH, self.t_m_CaH[i], self.t_h_CaH[i], voltage, self.E_Ca))
-                self.t_I_KDR = np.append(self.t_I_KDR, I_KDR_get(self.g_KDR, self.t_m_KDR[i], self.t_h_KDR[i], voltage, self.E_K))
-                self.t_I_KM = np.append(self.t_I_KM, I_KM_get(self.g_KM, self.t_m_KM[i], voltage, self.E_K))
-                self.t_I_L = np.append(self.t_I_L, I_L_get(self.g_L, voltage, self.E_L))
-                self.t_I_H = np.append(self.t_I_H, I_H_get(self.g_H, self.p, self.t_m_H[i], self.t_n_H[i], voltage, self.E_H))
-                self.t_I_SK = np.append(self.t_I_SK, I_SK_get(self.g_SK, self.t_Ca[i], self.k_SK, voltage, self.E_K))
-            # print(I_app.getCurrent(I_app.getLength))
-            # print(I_hold)
-            # print(self.t_I_NaT[-1] + self.t_I_NaP[-1] + self.t_I_CaT[-1] + self.t_I_CaH[-1] + self.t_I_KDR[-1] + self.t_I_KM[-1] + self.t_I_L[-1] + self.t_I_H[-1])
-            # print("t_I_NaT " + str(self.t_I_NaT[-1]))
-            # print("t_I_NaP " + str(self.t_I_NaP[-1]))
-            # print("t_I_CaT " + str(self.t_I_CaT[-1]))
-            # print("t_I_CaH " + str(self.t_I_CaH[-1]))
-            # print("t_I_KDR " + str(self.t_I_KDR[-1]))
-            # print("t_I_KM " + str(self.t_I_KM[-1]))
-            # print("t_I_L " + str(self.t_I_L[-1]))
-            # print("t_I_H " + str(self.t_I_H[-1]))
-            # print("hCaT " + str(self.t_h_CaT[-1]))
-            # print("hCaT_INF " + str(boltzmann(z[10][-1], self.Vh_CaT, self.kh_CaT)))
-            # print("t_I_SK " + str(self.t_I_SK[-1]))
+            for i,voltage in enumerate(small_t_V):
+                small_t_m_NaT[i] = boltzmann(voltage, self.Vm_NaT, self.km_NaT)
+                small_t_m_NaP[i] = boltzmann(voltage, self.Vm_NaP, self.km_NaP)
+                small_t_I_NaT[i] = I_NaT_get(self.g_NaT, small_t_m_NaT[i], small_t_h_NaT[i], voltage, self.E_Na)
+                small_t_I_NaP[i] = I_NaP_get(self.g_NaP, small_t_m_NaP[i], voltage, self.E_Na)
+                small_t_I_CaT[i] = I_CaT_get(self.g_CaT, small_t_m_CaT[i], small_t_h_CaT[i], voltage, self.E_Ca)
+                small_t_I_CaH[i] = I_CaH_get(self.g_CaH, small_t_m_CaH[i], small_t_h_CaH[i], voltage, self.E_Ca)
+                small_t_I_KDR[i] = I_KDR_get(self.g_KDR, small_t_m_KDR[i], small_t_h_KDR[i], voltage, self.E_K)
+                small_t_I_KM[i] = I_KM_get(self.g_KM, small_t_m_KM[i], voltage, self.E_K)
+                small_t_I_L[i] = I_L_get(self.g_L, voltage, self.E_L)
+                small_t_I_H[i] = I_H_get(self.g_H, self.p, small_t_m_H[i], small_t_n_H[i], voltage, self.E_H)
+                small_t_I_SK[i] = I_SK_get(self.g_SK, small_t_Ca[i], self.k_SK, voltage, self.E_K)
 
             #Deal with t_eval
             self.length_tracker = np.append(self.length_tracker,self.length)
 
+            # Create Full Time series
+            self.t_m_NaT = np.append(self.t_m_NaT, small_t_m_NaT)
+            self.t_m_NaP = np.append(self.t_m_NaP, small_t_m_NaP)
+            self.t_I_NaT = np.append(self.t_I_NaT, small_t_I_NaT)
+            self.t_I_NaP = np.append(self.t_I_NaP, small_t_I_NaP)
+            self.t_I_CaT = np.append(self.t_I_CaT, small_t_I_CaT)
+            self.t_I_CaH = np.append(self.t_I_CaH, small_t_I_CaH)
+            self.t_I_KDR = np.append(self.t_I_KDR, small_t_I_KDR)
+            self.t_I_KM = np.append(self.t_I_KM, small_t_I_KM)
+            self.t_I_L = np.append(self.t_I_L, small_t_I_L)
+            self.t_I_H = np.append(self.t_I_H, small_t_I_H)
+            self.t_I_SK = np.append(self.t_I_SK, small_t_I_SK)
+            self.t_m_CaT = np.append(self.t_m_CaT, small_t_m_CaT)
+            self.t_m_CaH = np.append(self.t_m_CaH, small_t_m_CaH)
+            self.t_m_KDR = np.append(self.t_m_KDR, small_t_m_KDR)
+            self.t_m_KM = np.append(self.t_m_KM, small_t_m_KM)
+            self.t_m_H = np.append(self.t_m_H, small_t_m_H)
+            self.t_h_NaT = np.append(self.t_h_NaT, small_t_h_NaT)
+            self.t_h_CaT = np.append(self.t_h_CaT, small_t_h_CaT)
+            self.t_h_CaH = np.append(self.t_h_CaH, small_t_h_CaH)
+            self.t_h_KDR = np.append(self.t_h_KDR, small_t_h_KDR)
+            self.t_n_H = np.append(self.t_n_H, small_t_n_H)
+            self.t_V = np.append(self.t_V, small_t_V)
+            self.t_Ca = np.append(self.t_Ca, small_t_Ca)
+            self.t_I_app = np.append(self.t_I_app, small_t_I_app)
+
+            idx = np.argmax(self.t_V)
+
+            print("V      =", self.t_V[idx])
+            print("NaT    =", self.t_I_NaT[idx])
+            print("NaP    =", self.t_I_NaP[idx])
+            print("CaT    =", self.t_I_CaT[idx])
+            print("CaH    =", self.t_I_CaH[idx])
+            print("KDR    =", self.t_I_KDR[idx])
+            print("KM     =", self.t_I_KM[idx])
+            print("Leak   =", self.t_I_L[idx])
+
+        #Update starting condition
         if updateStart:
             if verbose:
                 print("Updating starting conditions")
@@ -319,10 +378,10 @@ class HogdkinHuxley:
         return z
 
     def plotVoltageTimeSeries(self, saveLocation, saveNumber, save = True, show = True, additionalText=""):
-        plt.plot(self.final_t_eval, self.t_V)
+        plt.plot(self.t_eval, self.t_V)
         plt.xlabel("Time (ms)")
         plt.ylabel("mV")
-        plt.ylim([-0.08, 0.08])
+        # plt.ylim([-0.08, 0.08])
         if additionalText != "":
             additionalText = " " + additionalText
         plt.title("Voltage Trace" + additionalText)
@@ -357,6 +416,9 @@ class HogdkinHuxley:
         plt.legend(loc="upper right")
         # plt.savefig(saveLocation + str(saveNumber) + ".4.Gating Variable Timeseries" + ".png")
         plt.show()
+        print(np.min(self.t_h_KDR))
+        print(np.min(self.t_m_KDR))
+        print(np.min(self.t_m_KM))
 
     def plotChannelTimeSeriesVoltage(self):
         plt.scatter(self.t_V, self.t_m_NaT, label="mNaT")
@@ -427,7 +489,7 @@ class HogdkinHuxley:
         plt.plot(self.final_t_eval, self.t_I_CaH, label="CaH")
         plt.plot(self.final_t_eval, self.t_I_KDR, label="KDR")
         plt.plot(self.final_t_eval, self.t_I_KM, label="KM")
-        # plt.plot(self.final_t_eval, self.t_I_L, label="L")
+        plt.plot(self.final_t_eval, self.t_I_L, label="L")
         # plt.plot(self.final_t_eval, self.t_I_H, label="H")
         # plt.plot(self.final_t_eval, self.t_I_SK, label="SK")
         plt.xlabel("Time (ms)")
