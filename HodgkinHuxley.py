@@ -4,6 +4,8 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from scipy import constants
 from matplotlib import pyplot as plt
+from scipy.signal import find_peaks
+
 from utils import model, boltzmann, I_NaT_get, I_NaP_get, I_CaT_get, I_CaH_get, I_KDR_get, \
     I_KM_get, I_L_get, I_H_get, I_SK_get, conversionFactor_mToU, conversionFactor_nToM, timeConstant
 
@@ -142,17 +144,15 @@ class HogdkinHuxley:
         #Labeled gS in paper, assuming this is correct
         self.g_NaP = 0.1
         self.g_CaT = 0.6
-        self.g_CaH = 2.6  #0.74
+        self.g_CaH = 2.6  #0.74 <- This is the one
         self.g_KDR = 9.5
         self.g_KM = 0.8
         self.g_L = 0.02
         self.g_H = 0.05
-
         # Half activation voltage
         self.Vm_NaT = -37
 
         # Initialize gating variable
-
         self.p = 0.85 #Does not exist
         # Half activation voltage
         self.Vm_NaP = -47
@@ -232,11 +232,6 @@ class HogdkinHuxley:
         self.h_CaH0 = boltzmann(self.V0, self.Vh_CaH, self.kh_CaH)
         self.h_KDR0 = boltzmann(self.V0, self.Vh_KDR, self.kh_KDR)
         self.n_H0 = boltzmann(self.V0, self.Vn_H, self.kn_H)
-
-
-
-
-
 
     def updateValues(self, m_CaT0, m_CaH0, m_KDR0, m_KM0, m_H0, h_NaT0, h_CaT0, h_CaH0, h_KDR0, n_H0):
         self.m_CaT0 = m_CaT0
@@ -556,3 +551,16 @@ class HogdkinHuxley:
         plt.xlabel("Voltage (mV)")
         plt.legend()
         plt.show()
+
+    def plotAdaption(self, saveLocation, saveNumber, extraText):
+        peak_index = find_peaks(self.t_V, height=0)[0]
+        interSpikeInterval = np.zeros(len(peak_index) - 1)
+        for firstIndex in range(len(peak_index) - 1):
+            secondIndex = firstIndex + 1
+            interSpikeInterval[firstIndex] = self.final_t_eval[peak_index[secondIndex]] - self.final_t_eval[peak_index[firstIndex]]
+        plt.plot(range(1, len(interSpikeInterval) + 1), interSpikeInterval)
+        plt.xlabel("Number of Spikes")
+        plt.ylabel("Interspike interval (ms)")
+        plt.title("Adaptation " + extraText)
+        plt.show()
+        plt.savefig(saveLocation + str(saveNumber) + ".8.Adaptation" + ".png")

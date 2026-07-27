@@ -3,6 +3,7 @@ import multiprocessing
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import least_squares
+from scipy.signal import find_peaks
 
 from Electrode import WhiteNoise, Chirp
 from HodgkinHuxley import HogdkinHuxley
@@ -86,16 +87,22 @@ class ExperimentManager:
                     print(permutationValue)
                     self.neuron = HogdkinHuxley()
                     self.neuron.setValues_alt()
-                    self.I_hold = self.starting_I_hold
+                    self.I_hold = 0
                     self.neuron.tau_m_KM = permutationValue
-                    #Get rid of transient
-                    current = WhiteNoise(0, 1000)
+
+                    current = WhiteNoise(0, 500)
                     self.neuron.runModel(self.I_hold, current, True, False, False, True, False)
-                    #Run model
-                    current = WhiteNoise(self.peakCurrent, 2000)
-                    self.neuron.runModel(self.I_hold, current, True,False, True, True, False)
+                    current = WhiteNoise(self.peakCurrent, 1000)
+                    self.neuron.runModel(self.I_hold, current, True, False, True, True, False)
+
                     self.neuron.prepareToPlot()
-                    self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),False, True, "Varying tau_m_KM " + str(permutationValue))
+                    self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),True, True, "Varying tau_m_KM " + str(permutationValue))
+                    # Plot spike timing
+                    self.neuron.plotAdaption(self.saveLocation, self.getPlotNumber(), "Varying tau_m_KM " + str(permutationValue))
+                    self.experimentsRun += 1
+
+
+
             case "PermutationTesting2":
                 # self.g_SK = 10  # * 1500# nS
                 # self.k_SK = 0.8  # uM
@@ -137,9 +144,9 @@ class ExperimentManager:
     def getPlotNumber(self):
         return self.experimentsRun + 1
 
-    def generateValues(self, mean, numberOfValues = 40):
+    def generateValues(self, mean, numberOfValues = 200):
         #Assume twenty plots and 20% on each side
-        percentagePerSide = 0.70#0.2
+        percentagePerSide = 0.90#0.2
         distanceFromMean = percentagePerSide * mean
         lowerBound = mean - distanceFromMean
         upperBound = mean + distanceFromMean
