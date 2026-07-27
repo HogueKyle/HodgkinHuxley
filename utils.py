@@ -22,9 +22,6 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     V0 = y0[10]
     Ca_c = y0[11]
 
-    if V0 > 40:
-        print("AP!")
-
     # Non derivative gating functions
     m_NaT = boltzmann(V0, Vm_NaT, km_NaT)
     m_NaP = boltzmann(V0, Vm_NaP, km_NaP)

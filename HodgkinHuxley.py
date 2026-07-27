@@ -347,17 +347,6 @@ class HogdkinHuxley:
             self.t_Ca = np.append(self.t_Ca, small_t_Ca)
             self.t_I_app = np.append(self.t_I_app, small_t_I_app)
 
-            idx = np.argmax(self.t_V)
-
-            print("V      =", self.t_V[idx])
-            print("NaT    =", self.t_I_NaT[idx])
-            print("NaP    =", self.t_I_NaP[idx])
-            print("CaT    =", self.t_I_CaT[idx])
-            print("CaH    =", self.t_I_CaH[idx])
-            print("KDR    =", self.t_I_KDR[idx])
-            print("KM     =", self.t_I_KM[idx])
-            print("Leak   =", self.t_I_L[idx])
-
         #Update starting condition
         if updateStart:
             if verbose:
@@ -378,7 +367,7 @@ class HogdkinHuxley:
         return z
 
     def plotVoltageTimeSeries(self, saveLocation, saveNumber, save = True, show = True, additionalText=""):
-        plt.plot(self.t_eval, self.t_V)
+        plt.plot(self.final_t_eval, self.t_V)
         plt.xlabel("Time (ms)")
         plt.ylabel("mV")
         # plt.ylim([-0.08, 0.08])
@@ -414,11 +403,8 @@ class HogdkinHuxley:
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        # plt.savefig(saveLocation + str(saveNumber) + ".4.Gating Variable Timeseries" + ".png")
+        plt.savefig(saveLocation + str(saveNumber) + ".4.Gating Variable Timeseries" + ".png")
         plt.show()
-        print(np.min(self.t_h_KDR))
-        print(np.min(self.t_m_KDR))
-        print(np.min(self.t_m_KM))
 
     def plotChannelTimeSeriesVoltage(self):
         plt.scatter(self.t_V, self.t_m_NaT, label="mNaT")
@@ -490,7 +476,7 @@ class HogdkinHuxley:
         plt.plot(self.final_t_eval, self.t_I_KDR, label="KDR")
         plt.plot(self.final_t_eval, self.t_I_KM, label="KM")
         plt.plot(self.final_t_eval, self.t_I_L, label="L")
-        # plt.plot(self.final_t_eval, self.t_I_H, label="H")
+        plt.plot(self.final_t_eval, self.t_I_H, label="H")
         # plt.plot(self.final_t_eval, self.t_I_SK, label="SK")
         plt.xlabel("Time (ms)")
         plt.ylabel("Current (nA/cm^2)")

@@ -56,13 +56,13 @@ class ExperimentManager:
                 # current = WhiteNoise(0, 1000)
                 # self.neuron.runModel(self.I_hold, current, True, False, False, True, True)
                 current = WhiteNoise(0, 500)
-                self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
+                self.neuron.runModel(self.I_hold, current, True, False, True, True, False)
                 # current = WhiteNoise(0, 500)
                 # self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
                 current = WhiteNoise(self.peakCurrent, 500)
-                self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
+                self.neuron.runModel(self.I_hold, current, True, False, True, True, False)
                 current = WhiteNoise(0, 500)
-                self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
+                self.neuron.runModel(self.I_hold, current, True, False, True, True, False)
                 self.plotingSuite("Step Current " + str(self.peakCurrent * 100) + "pA for 500mS")
             case "Constant":
                 print("Running Constant Current Experiment")
@@ -129,10 +129,10 @@ class ExperimentManager:
         self.neuron.plotChannelTimeSeries(self.saveLocation, self.getPlotNumber())
         print("Printing channel current time series")
         self.neuron.plotChannelCurrentsTimeSeries(self.saveLocation, self.getPlotNumber())
-        print("Printing calcium concentration time series")
-        self.neuron.plotCalciumConcentration(self.saveLocation, self.getPlotNumber())
-        print("Printing combined calcium current time series")
-        self.neuron.plotCalciumCurrent(self.saveLocation, self.getPlotNumber())
+        # print("Printing calcium concentration time series")
+        # self.neuron.plotCalciumConcentration(self.saveLocation, self.getPlotNumber())
+        # print("Printing combined calcium current time series")
+        # self.neuron.plotCalciumCurrent(self.saveLocation, self.getPlotNumber())
 
     def getPlotNumber(self):
         return self.experimentsRun + 1
