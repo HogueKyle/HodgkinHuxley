@@ -22,9 +22,6 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     V0 = y0[10]
     Ca_c = y0[11]
 
-    if V0 > 40:
-        print("AP!")
-
     # Non derivative gating functions
     m_NaT = boltzmann(V0, Vm_NaT, km_NaT)
     m_NaP = boltzmann(V0, Vm_NaP, km_NaP)
@@ -40,7 +37,7 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     I_KDR = I_KDR_get(g_KDR, m_KDR0, h_KDR0, V0, E_K)
     I_KM = I_KM_get(g_KM, m_KM0, V0, E_K)
     I_L = I_L_get(g_L, V0, E_L)
-    I_H = 0
+    I_H = I_H_get(g_H, p, m_H0, n_H0, V0, E_H)
 
     #Currents I_SK
     # I_SK = I_SK_get(g_SK, Ca_c, k_SK, V0, E_K) if useSK else 0
@@ -48,10 +45,10 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     # Calcium
     # dCa_c = ((1 + B_c / k_d) ** -1) * (((-(I_CaH + I_CaT) / (2*A*F*d))*1e-9) - gamma * (Ca_c - Ca_cr)) if useSK else 0
     dCa_c = ((1 + B_c / k_d) ** -1) * (((-(I_CaH + I_CaT) / (2*A*F*d))) - gamma * (Ca_c)) if useSK else 0
-
+    I_hold = 0 # -0.5421318206164359
     #Voltage
     if voltageRateIncrease:
-        dV = ((I_app.getCurrent(t) - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L)) / C
+        dV = ((I_app.getCurrent(t) + I_hold - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L - I_H)) / C
     else:
         dV = 0
 
@@ -64,8 +61,8 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     dm_KDR = gateDerivative(V0, Vm_KDR, km_KDR, m_KDR0, tau_m_KDR)
     dh_KDR = gateDerivative(V0, Vh_KDR, kh_KDR, h_KDR0, tau_h_KDR)
     dm_KM = gateDerivative(V0, Vm_KM, km_KM, m_KM0, tau_m_KM)
-    dm_H = 0
-    dn_H = 0
+    dm_H = gateDerivative(V0, Vm_H, km_H, m_H0, tau_m_H)
+    dn_H = gateDerivative(V0, Vn_H, kn_H, n_H0, tau_n_H)
 
 
     #Pack
@@ -117,7 +114,7 @@ def sphereArea(r):
     return 4 * np.pi * r ** 2
 
 def residuals(x, current, a, b, c, d, e, model):
-    target = -75.5
+    target = -80
     vPrime = model.runModel(x[0], current, a, b, c, d, e)[10, -1]
     print("Voltage " + str(vPrime) + " , Current " + str(x[0]) + " , Cost " + str(abs(target - vPrime)))
     return (abs(target - vPrime))

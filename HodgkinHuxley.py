@@ -136,7 +136,7 @@ class HogdkinHuxley:
     def setValues_alt(self):
         #Units
         # Membrane voltage
-        self.V0 = -75.5
+        self.V0 = -80#-75.5
         # Initialize conductance
         self.g_NaT = 65
         #Labeled gS in paper, assuming this is correct
@@ -146,7 +146,7 @@ class HogdkinHuxley:
         self.g_KDR = 9.5
         self.g_KM = 0.8
         self.g_L = 0.02
-        self.g_H = 0.0503 #Does not exist
+        self.g_H = 0.05
 
         # Half activation voltage
         self.Vm_NaT = -37
@@ -160,12 +160,12 @@ class HogdkinHuxley:
         self.Vm_CaH = -15
         self.Vm_KDR = -5.8
         self.Vm_KM = -30
-        self.Vm_H = -102 #Does not exist
+        self.Vm_H = -102
         self.Vh_NaT = -75
         self.Vh_CaT = -65
         self.Vh_CaH = -60
         self.Vh_KDR = -68
-        self.Vn_H = -102 #Does not exist
+        self.Vn_H = -102
         # Boltzman constants
         self.km_NaT = 5
         self.km_NaP = 3
@@ -173,18 +173,18 @@ class HogdkinHuxley:
         self.km_CaH = 5
         self.km_KDR = 11.4
         self.km_KM = 10
-        self.km_H = -13 #Does not exist
+        self.km_H = -13
         self.kh_NaT = -7
         self.kh_CaT = -8.5
         self.kh_CaH = -7
         self.kh_KDR = -9.7
-        self.kn_H = -6 #Does not exist
+        self.kn_H = -6
         # Initialize time constant
         self.tau_m_CaT = 2
         self.tau_m_CaH = 0.08
         self.tau_m_KDR = 1
         self.tau_m_KM = 75
-        self.tau_m_H = 15 #Does not exist
+        self.tau_m_H = 15
         self.tau_h_CaT = 32
         self.tau_h_CaH = 300
         self.tau_h_KDR = 1400
@@ -194,7 +194,7 @@ class HogdkinHuxley:
         self.E_Ca = 90
         self.E_K = -85
         self.E_L = -65
-        self.E_H = -30 #Does not exist
+        self.E_H = -30
         # Conductance
         self.C = 1
         # Calcium
@@ -347,17 +347,6 @@ class HogdkinHuxley:
             self.t_Ca = np.append(self.t_Ca, small_t_Ca)
             self.t_I_app = np.append(self.t_I_app, small_t_I_app)
 
-            idx = np.argmax(self.t_V)
-
-            print("V      =", self.t_V[idx])
-            print("NaT    =", self.t_I_NaT[idx])
-            print("NaP    =", self.t_I_NaP[idx])
-            print("CaT    =", self.t_I_CaT[idx])
-            print("CaH    =", self.t_I_CaH[idx])
-            print("KDR    =", self.t_I_KDR[idx])
-            print("KM     =", self.t_I_KM[idx])
-            print("Leak   =", self.t_I_L[idx])
-
         #Update starting condition
         if updateStart:
             if verbose:
@@ -378,7 +367,7 @@ class HogdkinHuxley:
         return z
 
     def plotVoltageTimeSeries(self, saveLocation, saveNumber, save = True, show = True, additionalText=""):
-        plt.plot(self.t_eval, self.t_V)
+        plt.plot(self.final_t_eval, self.t_V)
         plt.xlabel("Time (ms)")
         plt.ylabel("mV")
         # plt.ylim([-0.08, 0.08])
@@ -414,11 +403,8 @@ class HogdkinHuxley:
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        # plt.savefig(saveLocation + str(saveNumber) + ".4.Gating Variable Timeseries" + ".png")
+        plt.savefig(saveLocation + str(saveNumber) + ".4.Gating Variable Timeseries" + ".png")
         plt.show()
-        print(np.min(self.t_h_KDR))
-        print(np.min(self.t_m_KDR))
-        print(np.min(self.t_m_KM))
 
     def plotChannelTimeSeriesVoltage(self):
         plt.scatter(self.t_V, self.t_m_NaT, label="mNaT")
@@ -490,7 +476,7 @@ class HogdkinHuxley:
         plt.plot(self.final_t_eval, self.t_I_KDR, label="KDR")
         plt.plot(self.final_t_eval, self.t_I_KM, label="KM")
         plt.plot(self.final_t_eval, self.t_I_L, label="L")
-        # plt.plot(self.final_t_eval, self.t_I_H, label="H")
+        plt.plot(self.final_t_eval, self.t_I_H, label="H")
         # plt.plot(self.final_t_eval, self.t_I_SK, label="SK")
         plt.xlabel("Time (ms)")
         plt.ylabel("Current (nA/cm^2)")
