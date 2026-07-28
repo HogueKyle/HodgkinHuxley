@@ -140,17 +140,17 @@ class HogdkinHuxley:
         # Membrane voltage
         self.V0 = -80#-75.5
         # Initialize conductance
-        self.g_NaT = 65
+        self.g_NaT = 7.2603
         #Labeled gS in paper, assuming this is correct
-        self.g_NaP = 0.1
-        self.g_CaT = 0.6
-        self.g_CaH = 2.6  #0.74 <- This is the one
-        self.g_KDR = 9.5
-        self.g_KM = 0.8
-        self.g_L = 0.02
-        self.g_H = 0.05
+        self.g_NaP = 0.0423
+        self.g_CaT = 0.067
+        self.g_CaH = 1.5208 #0.74 <- This is the one
+        self.g_KDR = 12.505
+        self.g_KM = 3.3837
+        self.g_L = 0.0035
+        self.g_H = 0.0503
         # Half activation voltage
-        self.Vm_NaT = -37
+        self.Vm_NaT = -60
 
         # Initialize gating variable
         self.p = 0.85 #Does not exist
@@ -553,14 +553,15 @@ class HogdkinHuxley:
         plt.show()
 
     def plotAdaption(self, saveLocation, saveNumber, extraText):
-        peak_index = find_peaks(self.t_V, height=0)[0]
-        interSpikeInterval = np.zeros(len(peak_index) - 1)
-        for firstIndex in range(len(peak_index) - 1):
-            secondIndex = firstIndex + 1
-            interSpikeInterval[firstIndex] = self.final_t_eval[peak_index[secondIndex]] - self.final_t_eval[peak_index[firstIndex]]
-        plt.plot(range(1, len(interSpikeInterval) + 1), interSpikeInterval)
-        plt.xlabel("Number of Spikes")
-        plt.ylabel("Interspike interval (ms)")
-        plt.title("Adaptation " + extraText)
-        plt.show()
-        plt.savefig(saveLocation + str(saveNumber) + ".8.Adaptation" + ".png")
+        peak_index = find_peaks(self.t_V, height=-40)[0]
+        if len(peak_index > 1):
+            interSpikeInterval = np.zeros(len(peak_index) - 1)
+            for firstIndex in range(len(peak_index) - 1):
+                secondIndex = firstIndex + 1
+                interSpikeInterval[firstIndex] = self.final_t_eval[peak_index[secondIndex]] - self.final_t_eval[peak_index[firstIndex]]
+            plt.plot(range(1, len(interSpikeInterval) + 1), interSpikeInterval)
+            plt.xlabel("Number of Spikes")
+            plt.ylabel("Interspike interval (ms)")
+            plt.title("Adaptation " + extraText)
+            plt.show()
+            plt.savefig(saveLocation + str(saveNumber) + ".8.Adaptation" + ".png")
