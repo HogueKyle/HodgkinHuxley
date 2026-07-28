@@ -562,5 +562,5 @@ class HogdkinHuxley:
         plt.xlabel("Number of Spikes")
         plt.ylabel("Interspike interval (ms)")
         plt.title("Adaptation " + extraText)
-        plt.show()
         plt.savefig(saveLocation + str(saveNumber) + ".8.Adaptation" + ".png")
+        plt.show()
