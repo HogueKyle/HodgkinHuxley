@@ -4,7 +4,7 @@ from utils import printText
 
 
 def permute(starting_I_hold, peakCurrent, plotNumber, firstValue, secondValue):
-    saveLocation = "./CalciumParameterSearch/"
+    saveLocation = "./Out/"
     print("g_SK " + str(firstValue) + ", k_SK " + str(secondValue))
     neuron = HogdkinHuxley()
     neuron.setValues_alt()
@@ -36,6 +36,8 @@ def permute(starting_I_hold, peakCurrent, plotNumber, firstValue, secondValue):
     neuron.plotCalciumConcentration(saveLocation, plotNumber)
     print("Printing combined calcium current time series")
     neuron.plotCalciumCurrent(saveLocation, plotNumber)
+    print("Adaptation")
+    neuron.plotAdaptation(saveLocation, plotNumber)
 
     # # Calcium
     # self.k_d = 0.1  # um
