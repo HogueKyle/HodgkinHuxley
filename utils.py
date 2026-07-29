@@ -40,15 +40,15 @@ def model(t, y0, I_hold, g_NaT, g_NaP, g_CaT, g_CaH, g_KDR, g_KM, g_L, g_H, p, V
     I_H = I_H_get(g_H, p, m_H0, n_H0, V0, E_H)
 
     #Currents I_SK
-    # I_SK = I_SK_get(g_SK, Ca_c, k_SK, V0, E_K) if useSK else 0
+    I_SK = I_SK_get(g_SK, Ca_c, k_SK, V0, E_K) if useSK else 0
 
     # Calcium
     # dCa_c = ((1 + B_c / k_d) ** -1) * (((-(I_CaH + I_CaT) / (2*A*F*d))*1e-9) - gamma * (Ca_c - Ca_cr)) if useSK else 0
-    dCa_c = ((1 + B_c / k_d) ** -1) * (((-(I_CaH + I_CaT) / (2*A*F*d))) - gamma * (Ca_c)) if useSK else 0
+    dCa_c = ((1 + B_c / k_d) ** -1) * (((-(I_CaH + I_CaT) / (2*A*F*d))) - gamma * (Ca_c - Ca_cr)) if useSK else 0
     I_hold = 0 # -0.5421318206164359
     #Voltage
     if voltageRateIncrease:
-        dV = ((I_app.getCurrent(t) + I_hold - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L - I_H)) / C
+        dV = ((I_app.getCurrent(t) + I_hold - I_NaT - I_NaP - I_CaT - I_CaH - I_KDR - I_KM - I_L - I_H - I_SK)) / C
     else:
         dV = 0
 
@@ -105,7 +105,7 @@ def I_H_get(g_H, p, m_H0, n_H0, V0, E_H):
     return g_H * (p * m_H0 + (1 - p) * n_H0) * (V0 - E_H)
 
 def I_SK_get(g_SK, Ca_c, k_SK, V0, E_K):
-    return g_SK * ((Ca_c ** 5) / ((k_SK ** 5) + (Ca_c ** 5))) * (V0 - E_K)
+    return (g_SK * ((Ca_c ** 5) / ((k_SK ** 5) + (Ca_c ** 5))) * (V0 - E_K))
 
 def timeConstant(V0):
     return 0.2 + 0.007 * (np.exp(np.exp(-(V0 - 40.6)/51.4)))

@@ -13,10 +13,10 @@ def permute(starting_I_hold, peakCurrent, plotNumber, firstValue, secondValue):
     neuron.g_SK = firstValue
     neuron.k_SK = secondValue
     # Get rid of transient
-    current = WhiteNoise(0, 1000)
+    current = WhiteNoise(0, 500)
     neuron.runModel(I_hold, current, True, True, False, True, False)
     # Run model
-    current = WhiteNoise(peakCurrent, 500 * 10)
+    current = WhiteNoise(peakCurrent, 1000)
     neuron.runModel(I_hold, current, True, True, True, True, False)
     neuron.prepareToPlot()
     neuron.plotVoltageTimeSeries(saveLocation, plotNumber, False, True, "Varying g_SK " + str(firstValue) + ", varying k_SK " + str(secondValue))

@@ -70,7 +70,7 @@ class ExperimentManager:
                 # current = WhiteNoise(0, 3000)
                 # self.neuron.runModel(self.I_hold, current, True, False, False, True, True)
                 current = WhiteNoise(self.peakCurrent, 500)
-                self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
+                self.neuron.runModel(self.I_hold, current, True, True, True, True, True)
                 self.plotingSuite("Constant Current " + str(self.peakCurrent * 100) + "pA")
                 # self.neuron.plotChannelTimeSeriesVoltage()
             case "Chirp":
@@ -98,7 +98,7 @@ class ExperimentManager:
                     self.neuron.prepareToPlot()
                     self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),True, True, "Varying tau_m_KM " + str(permutationValue))
                     # Plot spike timing
-                    self.neuron.plotAdaption(self.saveLocation, self.getPlotNumber(), "Varying tau_m_KM " + str(permutationValue))
+                    self.neuron.plotAdaptation(self.saveLocation, self.getPlotNumber(), "Varying tau_m_KM " + str(permutationValue))
                     self.experimentsRun += 1
 
 
@@ -106,9 +106,9 @@ class ExperimentManager:
             case "PermutationTesting2":
                 # self.g_SK = 10  # * 1500# nS
                 # self.k_SK = 0.8  # uM
-                iterations = 22
-                g_SK_Array = np.array(np.linspace(0, 10000, iterations))
-                k_SK_Array = np.array(np.linspace(0, 10000, iterations))
+                iterations = 15
+                g_SK_Array = np.array(np.linspace(0, 100, iterations))
+                k_SK_Array = np.array(np.linspace(0, 100, iterations))
                 valueArray = np.zeros([iterations ** 2, 5])
                 counter = 0
                 for i, g_SK_value in enumerate(g_SK_Array):
@@ -136,10 +136,12 @@ class ExperimentManager:
         self.neuron.plotChannelTimeSeries(self.saveLocation, self.getPlotNumber())
         print("Printing channel current time series")
         self.neuron.plotChannelCurrentsTimeSeries(self.saveLocation, self.getPlotNumber())
-        # print("Printing calcium concentration time series")
-        # self.neuron.plotCalciumConcentration(self.saveLocation, self.getPlotNumber())
-        # print("Printing combined calcium current time series")
-        # self.neuron.plotCalciumCurrent(self.saveLocation, self.getPlotNumber())
+        print("Printing calcium concentration time series")
+        self.neuron.plotCalciumConcentration(self.saveLocation, self.getPlotNumber())
+        print("Printing combined calcium current time series")
+        self.neuron.plotCalciumCurrent(self.saveLocation, self.getPlotNumber())
+        print("Adaptation")
+        self.neuron.plotAdaptation(self.saveLocation, self.getPlotNumber())
 
     def getPlotNumber(self):
         return self.experimentsRun + 1

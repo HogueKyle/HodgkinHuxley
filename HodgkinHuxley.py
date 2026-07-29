@@ -203,7 +203,7 @@ class HogdkinHuxley:
         self.d = 0.1  # um
         self.gamma = 0.01  # ms-1
         self.Ca_cr = 0.07  # um
-        self.g_SK = 10  #* 1500# nS
+        self.g_SK = 10# nS
         # self.k_SK = 0.73  # uM
         self.k_SK = 0.8  # uM
         self.B_c = 90  # microMolar
@@ -472,18 +472,19 @@ class HogdkinHuxley:
         plt.plot(self.final_t_eval, self.t_I_KM, label="KM")
         plt.plot(self.final_t_eval, self.t_I_L, label="L")
         plt.plot(self.final_t_eval, self.t_I_H, label="H")
-        # plt.plot(self.final_t_eval, self.t_I_SK, label="SK")
+        plt.plot(self.final_t_eval, self.t_I_SK, label="SK")
         plt.xlabel("Time (ms)")
-        plt.ylabel("Current (nA/cm^2)")
+        plt.ylabel("Current (uA/cm^2)")
         plt.legend(loc="upper right")
         plt.title("Channel Currents")
+        plt.ylim(-200, 300)
         plt.savefig(saveLocation + str(saveNumber) + ".5.Channel Current Timeseries" + ".png")
         plt.show()
 
     def plotCalciumCurrent(self, saveLocation, saveNumber):
         plt.plot(self.final_t_eval, self.t_I_CaT + self.t_I_CaH, label="I_Ca")
         plt.xlabel("Time (ms)")
-        plt.ylabel("Current (nA/cm^2)")
+        plt.ylabel("Current (uA/cm^2)")
         plt.legend(loc="upper right")
         plt.title("ICa")
         plt.savefig(saveLocation + str(saveNumber) + ".6.Combined Ca Current Timeseries" + ".png")
@@ -500,67 +501,16 @@ class HogdkinHuxley:
     def prepareToPlot(self):
         self.final_t_eval = np.arange(0, self.length_tracker.sum(), self.step)
 
-    def plotGatingPerVoltageTrace(self):
-        V_array = np.linspace(-100, 40, 1000)
-        V_array2 = np.linspace(-50, 40, 1000)
-        mNaT = np.zeros(len(V_array))
-        hNaT = np.zeros(len(V_array))
-        mNaP = np.zeros(len(V_array))
-        mCaT = np.zeros(len(V_array))
-        hCaT = np.zeros(len(V_array))
-        mCaH = np.zeros(len(V_array))
-        hCaH = np.zeros(len(V_array))
-        mKM = np.zeros(len(V_array))
-        mKDR = np.zeros(len(V_array))
-        hKDR = np.zeros(len(V_array))
-        ThNaT = np.zeros(len(V_array2))
-        for i, V in enumerate(V_array):
-            mNaT[i] = boltzmann(V, self.Vm_NaT, self.km_NaT)
-            hNaT[i] = boltzmann(V, self.Vh_NaT, self.kh_NaT)
-            mNaP[i] = boltzmann(V, self.Vm_NaP, self.km_NaP)
-            mCaT[i] = boltzmann(V, self.Vm_CaT, self.km_CaT)
-            hCaT[i] = boltzmann(V, self.Vh_CaT, self.kh_CaT)
-            mCaH[i] = boltzmann(V, self.Vm_CaH, self.km_CaH)
-            hCaH[i] = boltzmann(V, self.Vh_CaH, self.kh_CaH)
-            mKM[i] = boltzmann(V, self.Vm_KM, self.km_KM)
-            mKDR[i] = boltzmann(V, self.Vm_KDR, self.km_KDR)
-            hKDR[i] = boltzmann(V, self.Vh_KDR, self.kh_KDR)
-            ThNaT[i] = timeConstant(V)
-        plt.plot(V_array, mNaT, label="mNaT")
-        plt.plot(V_array, hNaT, label="hNaT")
-        plt.plot(V_array, mNaP, label="mNaP")
-        plt.xlabel("Voltage (mV)")
-        plt.legend()
-        plt.show()
-        plt.plot(V_array, mCaT, label="mCaT")
-        plt.plot(V_array, hCaT, label="hCaT")
-        plt.plot(V_array, mCaH, label="mCaH")
-        plt.plot(V_array, hCaH, label="hCaH")
-        plt.xlabel("Voltage (mV)")
-        plt.legend()
-        plt.show()
-        plt.plot(V_array, mKM, label="mKM")
-        plt.plot(V_array, mKDR, label="mKDR")
-        plt.plot(V_array, hKDR, label="hKDR")
-        plt.xlabel("Voltage (mV)")
-        plt.legend()
-        plt.show()
-        for i, V in enumerate(V_array2):
-            ThNaT[i] = timeConstant(V)
-        plt.plot(V_array2, ThNaT, label="ThNaT")
-        plt.xlabel("Voltage (mV)")
-        plt.legend()
-        plt.show()
-
-    def plotAdaption(self, saveLocation, saveNumber, extraText):
+    def plotAdaptation(self, saveLocation, saveNumber, extraText=""):
         peak_index = find_peaks(self.t_V, height=0)[0]
-        interSpikeInterval = np.zeros(len(peak_index) - 1)
-        for firstIndex in range(len(peak_index) - 1):
-            secondIndex = firstIndex + 1
-            interSpikeInterval[firstIndex] = self.final_t_eval[peak_index[secondIndex]] - self.final_t_eval[peak_index[firstIndex]]
-        plt.plot(range(1, len(interSpikeInterval) + 1), interSpikeInterval)
-        plt.xlabel("Number of Spikes")
-        plt.ylabel("Interspike interval (ms)")
-        plt.title("Adaptation " + extraText)
-        plt.savefig(saveLocation + str(saveNumber) + ".8.Adaptation" + ".png")
-        plt.show()
+        if len(peak_index) > 1:
+            interSpikeInterval = np.zeros(len(peak_index) - 1)
+            for firstIndex in range(len(peak_index) - 1):
+                secondIndex = firstIndex + 1
+                interSpikeInterval[firstIndex] = self.final_t_eval[peak_index[secondIndex]] - self.final_t_eval[peak_index[firstIndex]]
+            plt.plot(range(1, len(interSpikeInterval) + 1), interSpikeInterval)
+            plt.xlabel("Number of Spikes")
+            plt.ylabel("Interspike interval (ms)")
+            plt.title("Adaptation " + extraText)
+            plt.savefig(saveLocation + str(saveNumber) + ".8.Adaptation" + ".png")
+            plt.show()
