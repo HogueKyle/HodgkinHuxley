@@ -552,15 +552,15 @@ class HogdkinHuxley:
         plt.legend()
         plt.show()
 
-    def plotAdaption(self, saveLocation, saveNumber, extraText):
+    def plotAdaption(self, saveLocation, saveNumber, extraText, i):
         peak_index = find_peaks(self.t_V, height=0)[0]
         interSpikeInterval = np.zeros(len(peak_index) - 1)
         for firstIndex in range(len(peak_index) - 1):
             secondIndex = firstIndex + 1
             interSpikeInterval[firstIndex] = self.final_t_eval[peak_index[secondIndex]] - self.final_t_eval[peak_index[firstIndex]]
-        plt.plot(range(1, len(interSpikeInterval) + 1), interSpikeInterval)
-        plt.xlabel("Number of Spikes")
-        plt.ylabel("Interspike interval (ms)")
-        plt.title("Adaptation " + extraText)
-        plt.savefig(saveLocation + str(saveNumber) + ".8.Adaptation" + ".png")
-        plt.show()
+        list = self.final_t_eval[peak_index]
+        plt.plot(list[:-1], 1/interSpikeInterval, label="tau " + i)
+        plt.xlabel("t (ms)")
+        plt.ylabel("Frequency")
+        plt.title("Spike-frequency adaptation " + extraText)
+        # plt.savefig(saveLocation + str(saveNumber) + ".8.Adaptation" + ".png")

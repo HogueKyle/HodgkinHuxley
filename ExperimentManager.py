@@ -96,11 +96,13 @@ class ExperimentManager:
                     self.neuron.runModel(self.I_hold, current, True, False, True, True, False)
 
                     self.neuron.prepareToPlot()
-                    self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),True, True, "Varying tau_m_KM " + str(permutationValue))
+                    # self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),False, True, "Varying tau_m_KM " + str(permutationValue))
                     # Plot spike timing
-                    self.neuron.plotAdaption(self.saveLocation, self.getPlotNumber(), "Varying tau_m_KM " + str(permutationValue))
-                    self.experimentsRun += 1
+                    self.neuron.plotAdaption(self.saveLocation, self.getPlotNumber(), "Varying tau_m_KM ", str(permutationValue))
 
+                    self.experimentsRun += 1
+                plt.legend(loc="upper right")
+                plt.show()
 
 
             case "PermutationTesting2":
@@ -144,10 +146,11 @@ class ExperimentManager:
     def getPlotNumber(self):
         return self.experimentsRun + 1
 
-    def generateValues(self, mean, numberOfValues = 200):
+    def generateValues(self, mean, numberOfValues = 10):
         #Assume twenty plots and 20% on each side
-        percentagePerSide = 0.90#0.2
+        percentagePerSide = 0.30#0.2
         distanceFromMean = percentagePerSide * mean
         lowerBound = mean - distanceFromMean
         upperBound = mean + distanceFromMean
-        return np.linspace(lowerBound, upperBound, numberOfValues)
+        # return np.linspace(lowerBound, upperBound, numberOfValues)
+        return [75]
