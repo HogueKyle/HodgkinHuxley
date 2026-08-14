@@ -9,15 +9,23 @@ from ExperimentManager import ExperimentManager
 #
 # #Run steady state
 
+
+#MODIFICATIONS:
+#Removed KDR inactivation gate
+#Modified Vm_H -102 -> -70
+#         Vh_CaH -60 -> -40
+#         Vn_H -102 -> -70
+#         tau_h_CaH 300 -> 75
+
 if __name__ == '__main__':
 #Paper from https://research-information.bris.ac.uk/ws/portalfiles/portal/3018849/pyr_neur_model_preprint.pdf
     CoolExperiment = ExperimentManager(3)
     # CoolExperiment.run("Optimize")
     # CoolExperiment.run("Constant")
     # CoolExperiment.run("Restart")
-    # CoolExperiment.run("Step")
+    CoolExperiment.run("Step")
     # CoolExperiment.run("Restart")
     # CoolExperiment.run("Chirp")
     # CoolExperiment.run("PermutationTesting2")
-    CoolExperiment.run("PermutationTesting")
+    # CoolExperiment.run("PermutationTesting")
     # CoolExperiment.run("Debug")

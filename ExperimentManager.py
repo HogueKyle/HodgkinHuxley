@@ -54,8 +54,8 @@ class ExperimentManager:
             case "Step":
                 print("Running Step Experiment")
                 # Run step current
-                # current = WhiteNoise(0, 1000)
-                # self.neuron.runModel(self.I_hold, current, True, False, False, True, True)
+                current = WhiteNoise(0, 3000)
+                self.neuron.runModel(self.I_hold, current, True, False, False, True, False)
                 current = WhiteNoise(0, 500)
                 self.neuron.runModel(self.I_hold, current, True, False, True, True, False)
                 # current = WhiteNoise(0, 500)
@@ -67,12 +67,12 @@ class ExperimentManager:
                 self.plotingSuite("Step Current " + str(self.peakCurrent * 100) + "pA for 500mS")
             case "Constant":
                 print("Running Constant Current Experiment")
-                # current = WhiteNoise(0, 3000)
-                # self.neuron.runModel(self.I_hold, current, True, False, False, True, True)
-                current = WhiteNoise(self.peakCurrent, 500)
-                self.neuron.runModel(self.I_hold, current, True, False, True, True, True)
+                current = WhiteNoise(0, 30000)
+                self.neuron.runModel(self.I_hold, current, True, True, False, True, False)
+                current = WhiteNoise(self.peakCurrent, 2000)
+                self.neuron.runModel(self.I_hold, current, True, True, True, True, False)
                 self.plotingSuite("Constant Current " + str(self.peakCurrent * 100) + "pA")
-                # self.neuron.plotChannelTimeSeriesVoltage()
+                self.neuron.plotChannelTimeSeriesIndividual()
             case "Chirp":
                 # Run chirp current
                 current = WhiteNoise(0, 1000)

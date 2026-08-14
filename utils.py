@@ -93,7 +93,7 @@ def I_CaH_get(g_CaH, m_CaH0, h_CaH0, V0, E_Ca):
     # return 0
 
 def I_KDR_get(g_KDR, m_KDR0, h_KDR0, V0, E_K):
-    return g_KDR * m_KDR0 * h_KDR0 * (V0 - E_K)
+    return g_KDR * m_KDR0 * (V0 - E_K)
 
 def I_KM_get(g_KM, m_KM0, V0, E_K):
     return g_KM * m_KM0 * (V0 - E_K)

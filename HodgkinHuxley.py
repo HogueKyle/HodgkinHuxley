@@ -138,7 +138,7 @@ class HogdkinHuxley:
     def setValues_alt(self):
         #Units
         # Membrane voltage
-        self.V0 = -80#-75.5
+        self.V0 = -75.5
         # Initialize conductance
         self.g_NaT = 65
         #Labeled gS in paper, assuming this is correct
@@ -160,12 +160,12 @@ class HogdkinHuxley:
         self.Vm_CaH = -15
         self.Vm_KDR = -5.8
         self.Vm_KM = -30
-        self.Vm_H = -102
+        self.Vm_H = -70
         self.Vh_NaT = -75
         self.Vh_CaT = -65
-        self.Vh_CaH = -60
+        self.Vh_CaH = -40
         self.Vh_KDR = -68
-        self.Vn_H = -102
+        self.Vn_H = -70
         # Boltzman constants
         self.km_NaT = 5
         self.km_NaP = 3
@@ -186,7 +186,7 @@ class HogdkinHuxley:
         self.tau_m_KM = 75
         self.tau_m_H = 15
         self.tau_h_CaT = 32
-        self.tau_h_CaH = 300
+        self.tau_h_CaH = 75
         self.tau_h_KDR = 1400
         self.tau_n_H = 210
         # Reverse potential
@@ -401,61 +401,109 @@ class HogdkinHuxley:
         plt.savefig(saveLocation + str(saveNumber) + ".4.Gating Variable Timeseries" + ".png")
         plt.show()
 
+    def plotChannelTimeSeriesIndividual(self):
+        plt.subplot(3, 4, 1)
+        plt.plot(self.final_t_eval, self.t_m_NaT, label="mNaT")
+        plt.xlabel("Time (ms)")
+        plt.title("mNaT")
+        plt.subplot(3, 4, 2)
+        plt.plot(self.final_t_eval, self.t_m_NaP, label="mNaP")
+        plt.xlabel("Time (ms)")
+        plt.title("mNaP")
+        plt.subplot(3, 4, 3)
+        plt.plot(self.final_t_eval, self.t_m_CaT, label="mCaT")
+        plt.xlabel("Time (ms)")
+        plt.title("mCaT")
+        plt.subplot(3, 4, 4)
+        plt.plot(self.final_t_eval, self.t_m_CaH, label="mCaH")
+        plt.xlabel("Time (ms)")
+        plt.title("mCaH")
+        plt.subplot(3, 4, 5)
+        plt.plot(self.final_t_eval, self.t_m_KDR, label="mKDR")
+        plt.xlabel("Time (ms)")
+        plt.title("mKDR")
+        plt.subplot(3, 4, 6)
+        plt.plot(self.final_t_eval, self.t_m_KM, label="mKM")
+        plt.xlabel("Time (ms)")
+        plt.title("mKM")
+        plt.subplot(3, 4, 7)
+        plt.plot(self.final_t_eval, self.t_h_NaT, label="hNaT")
+        plt.xlabel("Time (ms)")
+        plt.title("hNaT")
+        plt.subplot(3, 4, 8)
+        plt.plot(self.final_t_eval, self.t_h_CaT, label="hCaT")
+        plt.xlabel("Time (ms)")
+        plt.title("hCaT")
+        plt.subplot(3, 4, 9)
+        plt.plot(self.final_t_eval, self.t_h_CaH, label="hCaH")
+        plt.xlabel("Time (ms)")
+        plt.title("hCaH")
+        plt.subplot(3, 4, 10)
+        plt.plot(self.final_t_eval, self.t_h_KDR, label="hKDR")
+        plt.xlabel("Time (ms)")
+        plt.title("hKDR")
+        plt.subplot(3, 4, 11)
+        plt.plot(self.final_t_eval, self.t_n_H, label="nH")
+        plt.xlabel("Time (ms)")
+        plt.title("nH")
+        plt.show()
+
     def plotChannelTimeSeriesVoltage(self):
+        plt.subplot(3, 4, 1)
         plt.scatter(self.t_V, self.t_m_NaT, label="mNaT")
         plt.xlabel("Time (ms)")
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        plt.show()
+        plt.subplot(3, 4, 2)
         plt.scatter(self.t_V, self.t_m_NaP, label="mNaP")
         plt.xlabel("Time (ms)")
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        plt.show()
+        plt.subplot(3, 4, 3)
         plt.scatter(self.t_V, self.t_m_CaT, label="mCaT")
         plt.xlabel("Time (ms)")
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        plt.show()
+        plt.subplot(3, 4, 4)
         plt.scatter(self.t_V, self.t_m_CaH, label="mCaH")
         plt.xlabel("Time (ms)")
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        plt.show()
+        plt.subplot(3, 4, 5)
         plt.scatter(self.t_V, self.t_m_KDR, label="mKDR")
         plt.xlabel("Time (ms)")
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        plt.show()
+        plt.subplot(3, 4, 6)
         plt.scatter(self.t_V, self.t_m_KM, label="mKM")
         plt.xlabel("Time (ms)")
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        plt.show()
+        plt.subplot(3, 4, 7)
         plt.scatter(self.t_V, self.t_h_NaT, label="hNaT")
         plt.xlabel("Time (ms)")
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        plt.show()
+        plt.subplot(3, 4, 8)
         plt.scatter(self.t_V, self.t_h_CaT, label="hCaT")
         plt.xlabel("Time (ms)")
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        plt.show()
+        plt.subplot(3, 4, 9)
         plt.scatter(self.t_V, self.t_h_CaH, label="hCaH")
         plt.xlabel("Time (ms)")
         plt.ylabel("Gating variables")
         plt.title("Gating Variables")
         plt.legend(loc="upper right")
-        plt.show()
+        plt.subplot(3, 4, 10)
         plt.scatter(self.t_V, self.t_h_KDR, label="hKDR")
         plt.xlabel("Time (ms)")
         plt.ylabel("Gating variables")
