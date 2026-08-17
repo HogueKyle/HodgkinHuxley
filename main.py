@@ -13,8 +13,8 @@ from ExperimentManager import ExperimentManager
 #MODIFICATIONS:
 #Removed KDR inactivation gate
 #Modified Vm_H -102 -> -70
-#         Vh_CaH -60 -> -40
 #         Vn_H -102 -> -70
+#         Vh_CaH -60 -> -40
 #         tau_h_CaH 300 -> 75
 
 if __name__ == '__main__':
