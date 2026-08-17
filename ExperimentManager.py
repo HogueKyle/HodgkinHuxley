@@ -75,10 +75,10 @@ class ExperimentManager:
                 # self.neuron.plotChannelTimeSeriesVoltage()
             case "Chirp":
                 # Run chirp current
-                current = WhiteNoise(0, 1000)
-                self.neuron.runModel(self.I_hold, current, True, False, False, True, True)
-                current = Chirp(20 * 1000, self.peakCurrent)
-                self.neuron.runModel(self.I_hold, current, True, False, True, True, True) #add step size 0.01
+                current = WhiteNoise(0, 30000)
+                self.neuron.runModel(self.I_hold, current, True, False, False, True, False)
+                current = Chirp(40 * 1000, self.peakCurrent)
+                self.neuron.runModel(self.I_hold, current, True, False, True, True, False) #add step size 0.01
                 self.plotingSuite("Chirp Current " + str(self.peakCurrent * 100) + "pA")
             case "PermutationTesting":
                 #Create array of values to permute through. Starting with tau_m_CaT which has a default value of 2.
