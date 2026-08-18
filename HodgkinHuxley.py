@@ -11,6 +11,7 @@ from utils import model, boltzmann, I_NaT_get, I_NaP_get, I_CaT_get, I_CaH_get, 
 
 
 class HogdkinHuxley:
+    #Initialize class
     def __init__(self):
         # Initialize conductance
         self.g_NaT = None
@@ -135,38 +136,168 @@ class HogdkinHuxley:
         self.t_Ca = np.array([])
         self.t_I_SK = np.array([])
 
-    def setValues_alt(self):
-        #Units
-        # Membrane voltage
-        self.V0 = -72.29997178338799#-80#-75.5
+    #Initialize parameters according to the model type
+    def setValues_alt(self, modelType):
+        match modelType:
+            case "Nowacki":
+                # Initial membrane voltage
+                self.V0 = -72.29997178338799  # Does not match -75.5 in paper when run to steady state.
+                # Initialize conductance
+                self.g_NaT = 65
+                self.g_NaP = 0.1
+                self.g_CaT = 0.6
+                self.g_CaH = 2.6  # Modified from 0.74 to match Nowacki preprint, otherwise trace does not match paper.
+                self.g_KDR = 9.5
+                self.g_KM = 0.8
+                self.g_L = 0.02
+                # Half activation voltages
+                self.Vm_NaT = -37
+                self.Vh_CaH = -60
+                # Time constants
+                self.tau_h_CaH = 300
+            case "Saghafi":
+                # Initial membrane voltage
+                self.V0 = -72.29997178338799 #Does not match -75.5 in paper when run to steady state.
+                # Initialize conductance
+                self.g_NaT = 65
+                self.g_NaP = 0.1
+                self.g_CaT = 0.6
+                self.g_CaH = 2.6  # Modified from 0.74 to match Nowacki preprint, otherwise trace does not match paper.
+                self.g_KDR = 9.5
+                self.g_KM = 0.8
+                self.g_H = 0.05
+                self.g_L = 0.02
+                # Half activation voltages
+                self.Vm_NaT = -37
+                self.Vm_H = -102
+                self.Vn_H = -102
+                self.Vh_CaH = -60
+                # Boltzman constants
+                self.km_H = -13
+                self.kn_H = -6
+                # Time constants
+                self.tau_m_H = 15
+                self.tau_n_H = 210
+                self.tau_h_CaH = 300
+                # Reverse potential
+                self.E_H = -30
+                # Gating variables
+                self.p = 0.85
+                self.m_H0 = boltzmann(self.V0, self.Vm_H, self.km_H)
+                self.n_H0 = boltzmann(self.V0, self.Vn_H, self.kn_H)
+            case "Saghafi_DE":
+                # Initial membrane voltage
+                self.V0 = -80
+                # Initialize conductance
+                self.g_NaT = 7.2603
+                self.g_NaP = 0.0423
+                self.g_CaT = 0.067
+                self.g_CaH = 1.5208
+                self.g_KDR = 12.505
+                self.g_KM = 3.3837
+                self.g_H = 0.0503
+                self.g_L = 0.0035
+                # Half activation voltages
+                self.Vm_NaT = -60
+                self.Vm_H = -102
+                self.Vn_H = -102
+                self.Vh_CaH = -60
+                # Boltzman constants
+                self.km_H = -13
+                self.kn_H = -6
+                # Time constants
+                self.tau_m_H = 15
+                self.tau_n_H = 210
+                self.tau_h_CaH = 300
+                # Reverse potential
+                self.E_H = -30
+                # Gating variables
+                self.p = 0.85
+                self.m_H0 = boltzmann(self.V0, self.Vm_H, self.km_H)
+                self.n_H0 = boltzmann(self.V0, self.Vn_H, self.kn_H)
+            case "Calcium":
+                # Initial membrane voltage
+                self.V0 = -72.29997178338799  # Does not match -75.5 in paper when run to steady state.
+                # Initialize conductance
+                self.g_NaT = 65
+                self.g_NaP = 0.1
+                self.g_CaT = 0.6
+                self.g_CaH = 2.6  # Modified from 0.74 to match Nowacki preprint, otherwise trace does not match paper.
+                self.g_KDR = 9.5
+                self.g_KM = 0.8
+                self.g_H = 0.05
+                self.g_L = 0.02
+                # Half activation voltages
+                self.Vm_NaT = -37
+                self.Vm_H = -102
+                self.Vn_H = -102
+                self.Vh_CaH = -60
+                # Boltzman constants
+                self.km_H = -13
+                self.kn_H = -6
+                # Time constants
+                self.tau_m_H = 15
+                self.tau_n_H = 210
+                self.tau_h_CaH = 300
+                # Reverse potential
+                self.E_H = -30
+                # Gating variables
+                self.p = 0.85
+                self.m_H0 = boltzmann(self.V0, self.Vm_H, self.km_H)
+                self.n_H0 = boltzmann(self.V0, self.Vn_H, self.kn_H)
+                # Calcium
+                self.k_d = 0.1  # um
+                self.A = 3000  # um^2
+                self.d = 0.1  # um
+                self.gamma = 0.01  # ms-1
+                self.Ca_cr = 0.07  # um
+                self.g_SK = 10  # * 1500# nS
+                self.k_SK = 0.8  # uM
+                self.B_c = 90  # microMolar
+                self.Ca_c0 = self.Ca_cr
+                self.F = constants.physical_constants['Faraday constant'][0] * 1e-6  # C mol^-1 converted to smaller version from paper
+            case "Saghafi_M":
+                # Initial membrane voltage
+                self.V0 = -80
+                # Initialize conductance
+                self.g_NaT = 65
+                self.g_NaP = 0.1
+                self.g_CaT = 0.6
+                self.g_CaH = 2.6  # Modified from 0.74 to match Nowacki preprint, otherwise trace does not match paper.
+                self.g_KDR = 9.5
+                self.g_KM = 0.8
+                self.g_H = 0.05
+                self.g_L = 0.02
+                # Half activation voltages
+                self.Vm_NaT = -37
+                self.Vm_H = -70 #MODIFIED
+                self.Vn_H = -70 #MODIFIED
+                self.Vh_CaH = -40  # MODIFIED
+                # Boltzman constants
+                self.km_H = -13
+                self.kn_H = -6
+                # Time constants
+                self.tau_m_H = 15
+                self.tau_n_H = 210
+                self.tau_h_CaH = 75 #MODIFIED
+                # Reverse potential
+                self.E_H = -30
+                # Gating variables
+                self.p = 0.85
+                self.m_H0 = boltzmann(self.V0, self.Vm_H, self.km_H)
+                self.n_H0 = boltzmann(self.V0, self.Vn_H, self.kn_H)
 
-        # Initialize conductance
-        self.g_NaT = 65
-        #Labeled gS in paper, assuming this is correct
-        self.g_NaP = 0.1
-        self.g_CaT = 0.6
-        self.g_CaH = 2.6  #0.74 <- This is the one
-        self.g_KDR = 9.5
-        self.g_KM = 0.8
-        self.g_L = 0.02
-        self.g_H = 0.05
-        # Half activation voltage
-        self.Vm_NaT = -37
 
-        # Initialize gating variable
-        self.p = 0.85 #Does not exist
+        #Rest of these values are the same for all models
         # Half activation voltage
         self.Vm_NaP = -47
         self.Vm_CaT = -54
         self.Vm_CaH = -15
         self.Vm_KDR = -5.8
         self.Vm_KM = -30
-        self.Vm_H = -102
         self.Vh_NaT = -75
         self.Vh_CaT = -65
-        self.Vh_CaH = -60
         self.Vh_KDR = -68
-        self.Vn_H = -102
         # Boltzman constants
         self.km_NaT = 5
         self.km_NaP = 3
@@ -174,65 +305,33 @@ class HogdkinHuxley:
         self.km_CaH = 5
         self.km_KDR = 11.4
         self.km_KM = 10
-        self.km_H = -13
         self.kh_NaT = -7
         self.kh_CaT = -8.5
         self.kh_CaH = -7
         self.kh_KDR = -9.7
-        self.kn_H = -6
         # Initialize time constant
         self.tau_m_CaT = 2
         self.tau_m_CaH = 0.08
         self.tau_m_KDR = 1
         self.tau_m_KM = 75
-        self.tau_m_H = 15
         self.tau_h_CaT = 32
-        self.tau_h_CaH = 300
         self.tau_h_KDR = 1400
-        self.tau_n_H = 210
         # Reverse potential
         self.E_Na = 60
         self.E_Ca = 90
         self.E_K = -85
         self.E_L = -65
-        self.E_H = -30
         # Conductance
         self.C = 1
-        # Calcium
-        self.k_d = 0.1  # um
-        self.A = 3000  # um^2
-        self.d = 0.1  # um
-        self.gamma = 0.01  # ms-1
-        self.Ca_cr = 0.07  # um
-        self.g_SK = 10  #* 1500# nS
-        # self.k_SK = 0.73  # uM
-        self.k_SK = 0.8  # uM
-        self.B_c = 90  # microMolar
-        self.Ca_c0 = self.Ca_cr
-        self.F = constants.physical_constants['Faraday constant'][0] * 1e-6  # C mol^-1 converted to smaller version from paper
-
-        # Initialize gating variable
-        # self.m_CaT0 = 0.005486594704365255
-        # self.m_CaH0 = 2.260443363987366e-06
-        # self.m_KDR0 = 0.0014881270089334075
-        # self.m_KM0 = 0.006693236665689997
-        # self.m_H0 = 0.1554691454071592
-        # self.h_NaT0 = 0.6713104329954209
-        # self.h_CaT0 = 0.8537921873675318
-        # self.h_CaH0 = 0.9456737145278049
-        # self.h_KDR0 = 0.7694232333411584
-        # self.n_H0 = 0.024919369791676596
-
+        #Initial values for gating variables
         self.m_CaT0 = boltzmann(self.V0, self.Vm_CaT, self.km_CaT)
         self.m_CaH0 = boltzmann(self.V0, self.Vm_CaH, self.km_CaH)
         self.m_KDR0 = boltzmann(self.V0, self.Vm_KDR, self.km_KDR)
         self.m_KM0 = boltzmann(self.V0, self.Vm_KM, self.km_KM)
-        self.m_H0 = boltzmann(self.V0, self.Vm_H, self.km_H)
         self.h_NaT0 = boltzmann(self.V0, self.Vh_NaT, self.kh_NaT)
         self.h_CaT0 = boltzmann(self.V0, self.Vh_CaT, self.kh_CaT)
         self.h_CaH0 = boltzmann(self.V0, self.Vh_CaH, self.kh_CaH)
         self.h_KDR0 = boltzmann(self.V0, self.Vh_KDR, self.kh_KDR)
-        self.n_H0 = boltzmann(self.V0, self.Vn_H, self.kn_H)
 
     def updateValues(self, m_CaT0, m_CaH0, m_KDR0, m_KM0, m_H0, h_NaT0, h_CaT0, h_CaH0, h_KDR0, n_H0):
         self.m_CaT0 = m_CaT0

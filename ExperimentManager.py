@@ -1,26 +1,29 @@
 import multiprocessing
-
+import os
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import least_squares
-from scipy.signal import find_peaks
-
 from Electrode import WhiteNoise, Chirp
 from HodgkinHuxley import HogdkinHuxley
 from ParallelFunctions import permute
-from utils import sphereArea, residuals, printText
+from utils import residuals, printText
 
 
 class ExperimentManager:
-    def __init__(self, peakCurrent):
+    #Initialize class
+    def __init__(self, peakCurrent, modelType, saveLocation = "./Out/"):
         self.experimentsRun = 0
-        self.saveLocation = "./Out/"
-        self.neuron = HogdkinHuxley()
-        self.neuron.setValues_alt()
-        # self.starting_I_hold =  -0.20956573344994844
-        self.I_hold = -0.0047399334213286595
-        # self.I_hold = -0.00020956573344785734
+        self.modelType = modelType
+        self.saveLocation = saveLocation
+        self.I_hold = 0
         self.peakCurrent = peakCurrent
+        #Create model according to set type
+        self.neuron = HogdkinHuxley()
+        self.neuron.setValues_alt(self.modelType)
+        #Make output folder if necessary
+        if not os.path.exists(self.saveLocation):
+            os.makedirs(self.saveLocation)
+
     def run(self, experiment):
         # Optimize for steady state
         match experiment:
