@@ -138,7 +138,8 @@ class HogdkinHuxley:
     def setValues_alt(self):
         #Units
         # Membrane voltage
-        self.V0 = -80#-75.5
+        self.V0 = -72.29997178338799#-80#-75.5
+
         # Initialize conductance
         self.g_NaT = 65
         #Labeled gS in paper, assuming this is correct
@@ -359,6 +360,7 @@ class HogdkinHuxley:
             self.n_H0 = z[9, -1]
             self.V0 = z[10, -1]
             self.Ca_c0 = z[11, -1]
+            print(self.V0)
         return z
 
     def plotVoltageTimeSeries(self, saveLocation, saveNumber, save = True, show = True, additionalText=""):
