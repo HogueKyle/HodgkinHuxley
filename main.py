@@ -14,7 +14,7 @@ To create an experiment use the 'ExperimentalManager' class, which takes three a
 3. The filepath to save results
 
 Once the class is instantiated, use the 'run' function to run the experiment.
-'run' takes one argument corresponding to the type of experiment to run ('Constant' for a 30000ms constant current, 'Step' for a 500ms step current and 'Chirp' for a 20s 0-15Hz Zap current.
+'run' takes one argument corresponding to the type of experiment to run ('Constant' for a 5s constant current, 'Step' for a 500ms step current and 'Chirp' for a 20s 0-15Hz Zap current.
 Additionally, run can take 'PermutationTesting' to run over a changing parameter, PermutationTesting2 to run over two parameters in parallel and Restart to reset values.
 '''
 

@@ -15,7 +15,7 @@ class Electrode:
         return t
     def getCurrent(self, t):
         raise NotImplementedError("Must be implemented in subclass")
-class WhiteNoise(Electrode):
+class Steady(Electrode):
     def getCurrent(self, t):
         return self.current
 class Step(Electrode):

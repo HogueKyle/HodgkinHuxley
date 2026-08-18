@@ -333,19 +333,7 @@ class HogdkinHuxley:
         self.h_CaH0 = boltzmann(self.V0, self.Vh_CaH, self.kh_CaH)
         self.h_KDR0 = boltzmann(self.V0, self.Vh_KDR, self.kh_KDR)
 
-    def updateValues(self, m_CaT0, m_CaH0, m_KDR0, m_KM0, m_H0, h_NaT0, h_CaT0, h_CaH0, h_KDR0, n_H0):
-        self.m_CaT0 = m_CaT0
-        self.m_CaH0 = m_CaH0
-        self.m_KDR0 = m_KDR0
-        self.m_KM0 = m_KM0
-        self.m_H0 = m_H0
-        self.h_NaT0 = h_NaT0
-        self.h_CaT0 = h_CaT0
-        self.h_CaH0 = h_CaH0
-        self.h_KDR0 = h_KDR0
-        self.n_H0 = n_H0
-
-    def runModel(self, I_hold, I_app, voltageRateIncrease, useSK, memory, updateStart, verbose, stepSize = 0.01):
+    def runModel(self, I_hold, I_app, voltageRateIncrease, useSK, useH, memory, updateStart, verbose, stepSize = 0.01):
         # Prepare ODE run
         start = 0
         self.step = stepSize
