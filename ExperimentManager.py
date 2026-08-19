@@ -43,7 +43,6 @@ class ExperimentManager:
             case "Saghafi_M":
                 self.useSK = False
                 self.useH = True
-
     def run(self, experiment):
         ##Run the correct experiment
         match experiment:
@@ -79,8 +78,8 @@ class ExperimentManager:
             case "Step":
                 print("Running Step Experiment")
                 # Run to steady state
-                current = Steady(0, 30000)
-                self.neuron.runModel(self.I_hold, current, True, self.useSK, self.useH, False, True, False)
+                # current = Steady(0, 30000)
+                # self.neuron.runModel(self.I_hold, current, True, self.useSK, self.useH, False, True, False)
                 # Run no current
                 current = Steady(0, 500)
                 self.neuron.runModel(self.I_hold, current, True, self.useSK, self.useH, True, True, False)
@@ -113,7 +112,7 @@ class ExperimentManager:
                 self.neuron.runModel(self.I_hold, current, True, self.useSK, self.useH, True, True, False)
                 #Plot results
                 self.plotingSuite("Chirp Current " + str(self.peakCurrent * 100) + "pA")
-            #Generate plots for an array of values for one parameter. Currently set for tau_m_KM, can be modified to any other parameter.
+            #Generate a voltage and adaptation plot for an array of values for one parameter. Currently set for tau_m_KM, can be modified to any other parameter.
             case "PermutationTesting":
                 #Generate a distrubution of values to permute over for a parameter
                 permutationValues = self.generateValues(75)
@@ -129,57 +128,70 @@ class ExperimentManager:
                     # Inject constant current
                     current = Steady(0, 5000)
                     self.neuron.runModel(self.I_hold, current, True, self.useSK, self.useH, True, True, False)
-
+                    #Plot results
                     self.neuron.prepareToPlot()
-                    # self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),False, True, "Varying tau_m_KM " + str(permutationValue))
-                    # Plot spike timing
+                    self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber(),False, True, "Varying tau_m_KM ",  str(permutationValue))
                     self.neuron.plotAdaption(self.saveLocation, self.getPlotNumber(), "Varying tau_m_KM ", str(permutationValue))
-
                     self.experimentsRun += 1
                 plt.legend(loc="upper right")
                 plt.show()
-
+            #Create multiple plots for two parameters searching across two arrays
             case "PermutationTesting2":
-                # self.g_SK = 10  # * 1500# nS
-                # self.k_SK = 0.8  # uM
+                #Number of values to try for EACH parameter
                 iterations = 22
+                #Create array of values to search across
                 g_SK_Array = np.array(np.linspace(0, 10000, iterations))
                 k_SK_Array = np.array(np.linspace(0, 10000, iterations))
                 valueArray = np.zeros([iterations ** 2, 5])
+                #Pass model type
+                modelType = 0
+                match self.modelType:
+                    case "Nowacki":
+                        modelType = 0
+                    case "Saghafi":
+                        modelType = 1
+                    case "Saghafi_DE":
+                        modelType = 2
+                    case "Calcium":
+                        modelType = 3
+                    case "Saghafi_M":
+                        modelType = 4
+                #Search using 'permute' in ParallelFunctions.py
                 counter = 0
                 for i, g_SK_value in enumerate(g_SK_Array):
                     for z, k_SK_value in enumerate(k_SK_Array):
                         counter +=1
-                        valueArray[counter - 1] = [self.starting_I_hold, self.peakCurrent, counter, g_SK_value, k_SK_value]
-                #valueArray = np.column_stack((np.full((len(g_SK_Array),1),self.starting_I_hold),np.full((len(g_SK_Array),1),self.peakCurrent), np.array(range(len(g_SK_Array))) + 1, g_SK_Array, k_SK_Array))
+                        valueArray[counter - 1] = [self.starting_I_hold, self.peakCurrent, counter, g_SK_value, k_SK_value, modelType]
                 pool_obj = multiprocessing.Pool()
                 pool_obj.starmap(permute, valueArray)
                 pool_obj.close()
                 pool_obj.join()
-            case "Debug":
-                self.neuron.plotGatingPerVoltageTrace()
         self.experimentsRun += 1
+    #Print plots for each experiment
     def plotingSuite(self, text):
-        print("Ploting preparation")
+        # print("Ploting preparation")
         self.neuron.prepareToPlot()
-        print("Printing title")
+        # print("Printing title")
         printText(text, self.saveLocation, self.getPlotNumber())
-        print("Printing voltage time series")
+        # print("Printing voltage time series")
         self.neuron.plotVoltageTimeSeries(self.saveLocation, self.getPlotNumber())
-        print("Printing applied current time series")
+        # print("Printing applied current time series")
         self.neuron.plotAppliedCurrentTimeSeries(self.saveLocation, self.getPlotNumber())
-        print("Printing gating variable time series")
+        # print("Printing gating variable time series")
         self.neuron.plotChannelTimeSeries(self.saveLocation, self.getPlotNumber())
-        print("Printing channel current time series")
+        # print("Printing channel current time series")
         self.neuron.plotChannelCurrentsTimeSeries(self.saveLocation, self.getPlotNumber())
-        # print("Printing calcium concentration time series")
-        # self.neuron.plotCalciumConcentration(self.saveLocation, self.getPlotNumber())
-        # print("Printing combined calcium current time series")
-        # self.neuron.plotCalciumCurrent(self.saveLocation, self.getPlotNumber())
-
+        # print("Printing spike frequency adaptation plot")
+        self.neuron.plotAdaption(self.saveLocation, self.getPlotNumber())
+        if self.modelType == "Calcium":
+            # print("Printing calcium concentration time series")
+            self.neuron.plotCalciumConcentration(self.saveLocation, self.getPlotNumber())
+            # print("Printing combined calcium current time series")
+            self.neuron.plotCalciumCurrent(self.saveLocation, self.getPlotNumber())
+    #Increment and return the current plot number for saving
     def getPlotNumber(self):
         return self.experimentsRun + 1
-
+    #Generate an array of values centered around a value. Takes 0.3 of the value and uses that to create the upper and lower bound of the distribution.
     def generateValues(self, mean, numberOfValues = 10, percentagePerSide = 0.30):
         distanceFromMean = percentagePerSide * mean
         lowerBound = mean - distanceFromMean

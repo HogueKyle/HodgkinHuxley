@@ -1,50 +1,80 @@
 from Electrode import Steady
 from HodgkinHuxley import HogdkinHuxley
 from utils import printText
-
-
-def permute(starting_I_hold, peakCurrent, plotNumber, firstValue, secondValue):
+'''
+Used to run multiple simulations in parallel, permuting over two sets of values.
+Args:
+1. Hold value
+2. Max current
+3. Indentifier for each value pair
+4. First value
+5. Second value
+Currently set to permute over g_SK and k_SK, can be modified.
+'''
+def permute(starting_I_hold, peakCurrent, plotNumber, firstValue, secondValue, modelType2):
     saveLocation = "./CalciumParameterSearch/"
+    # Get model type
+    modelType = "Nowacki"
+    match modelType2:
+        case 0:
+            modelType = "Nowacki"
+        case 1:
+            modelType = "Saghafi"
+        case 2:
+            modelType = "Saghafi_DE"
+        case 3:
+            modelType = "Calcium"
+        case 4:
+            modelType = "Saghafi_M"
+    # Determine what channels to use according to model type
+    useSK = True
+    useH = True
+    match modelType:
+        case "Nowacki":
+            useSK = False
+            useH = False
+        case "Saghafi":
+            useSK = False
+            useH = True
+        case "Saghafi_DE":
+            useSK = False
+            useH = True
+        case "Calcium":
+            useSK = True
+            useH = True
+        case "Saghafi_M":
+            useSK = False
+            useH = True
     print("g_SK " + str(firstValue) + ", k_SK " + str(secondValue))
+    #Create model
     neuron = HogdkinHuxley()
-    neuron.setValues_alt()
+    neuron.setValues_alt(modelType)
     I_hold = starting_I_hold
-    # Update the values
+    # Update values for this permutation
     neuron.g_SK = firstValue
     neuron.k_SK = secondValue
-    # Get rid of transient
-    current = Steady(0, 1000)
-    neuron.runModel(I_hold, current, True, True, False, True, False)
-    # Run model
-    current = Steady(peakCurrent, 500 * 10)
-    neuron.runModel(I_hold, current, True, True, True, True, False)
+    # Run to steady state
+    current = Steady(0, 30000)
+    neuron.runModel(I_hold, current, True, useSK, useH, False, True, False)
+    # Run with constant current
+    current = Steady(peakCurrent, 5000)
+    neuron.runModel(I_hold, current, True, useSK, useH, True, True, False)
+    #Print results
+    # neuron.prepareToPlot()
+    # neuron.plotVoltageTimeSeries(saveLocation, plotNumber, False, True, "Varying g_SK " + str(firstValue) + ", varying k_SK " + str(secondValue))
+    # print("Ploting preparation")
     neuron.prepareToPlot()
-    neuron.plotVoltageTimeSeries(saveLocation, plotNumber, False, True, "Varying g_SK " + str(firstValue) + ", varying k_SK " + str(secondValue))
-    print("Ploting preparation")
-    neuron.prepareToPlot()
-    print("Printing title")
+    # print("Printing title")
     printText("Constant Current " + str(peakCurrent * 100) + "pA, " + "Varying g_SK " + str(firstValue) + ", varying k_SK " + str(secondValue), saveLocation, plotNumber)
-    print("Printing voltage time series")
+    # print("Printing voltage time series")
     neuron.plotVoltageTimeSeries(saveLocation, plotNumber)
-    print("Printing applied current time series")
+    # print("Printing applied current time series")
     neuron.plotAppliedCurrentTimeSeries(saveLocation, plotNumber)
-    print("Printing gating variable time series")
+    # print("Printing gating variable time series")
     neuron.plotChannelTimeSeries(saveLocation, plotNumber)
-    print("Printing channel current time series")
+    # print("Printing channel current time series")
     neuron.plotChannelCurrentsTimeSeries(saveLocation, plotNumber)
-    print("Printing calcium concentration time series")
+    # print("Printing calcium concentration time series")
     neuron.plotCalciumConcentration(saveLocation, plotNumber)
-    print("Printing combined calcium current time series")
+    # print("Printing combined calcium current time series")
     neuron.plotCalciumCurrent(saveLocation, plotNumber)
-
-    # # Calcium
-    # self.k_d = 0.1  # um
-    # self.A = 3000  # um^2
-    # self.d = 0.1  # um
-    # self.gamma = 0.01  # ms-1
-    # self.Ca_cr = 0.07  # um
-    # self.g_SK = 10  # * 1500# nS
-    # self.k_SK = 0.8  # uM
-    # self.B_c = 90  # microMolar
-    # self.Ca_c0 = self.Ca_cr
-    # self.F = constants.physical_constants['Faraday constant'][0] * 1e-6  # C mol^-1 converted to smaller version from paper

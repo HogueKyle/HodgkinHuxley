@@ -19,17 +19,37 @@ Additionally, run can take 'PermutationTesting' to run over a changing parameter
 '''
 
 if __name__ == '__main__':
-#Paper from
-    Saghafi = ExperimentManager(3)
+    # Nowacki_1 = ExperimentManager(1, "Nowacki", "./Runs/Nowacki/100uA/")
+    # Nowacki_1.run("Step")
+    # Nowacki_2 = ExperimentManager(2, "Nowacki", "./Runs/Nowacki/200uA/")
+    # Nowacki_2.run("Step")
+    # Nowacki_3 = ExperimentManager(3, "Nowacki", "./Runs/Nowacki/300uA/")
+    # Nowacki_3.run("Step")
 
+    # Saghafi_1 = ExperimentManager(1, "Saghafi", "./Runs/Saghafi/100uA/")
+    # Saghafi_1.run("Step")
+    # Saghafi_2 = ExperimentManager(2, "Saghafi", "./Runs/Saghafi/200uA/")
+    # Saghafi_2.run("Step")
+    # Saghafi_3 = ExperimentManager(3, "Saghafi", "./Runs/Saghafi/300uA/")
+    # Saghafi_3.run("Step")
 
+    # Saghafi_DE_1 = ExperimentManager(1, "Saghafi_DE", "./Runs/Saghafi_DE/100uA/")
+    # Saghafi_DE_1.run("Step")
+    # Saghafi_DE_2 = ExperimentManager(2, "Saghafi_DE", "./Runs/Saghafi_DE/200uA/")
+    # Saghafi_DE_2.run("Step")
+    Saghafi_DE_3 = ExperimentManager(3, "Saghafi_DE", "./Runs/Saghafi_DE/300uA/")
+    Saghafi_DE_3.run("Step")
 
-    # CoolExperiment.run("Optimize")
-    CoolExperiment.run("Constant")
-    # CoolExperiment.run("Restart")
-    # CoolExperiment.run("Step")
-    # CoolExperiment.run("Restart")
-    # CoolExperiment.run("Chirp")
-    # CoolExperiment.run("PermutationTesting2")
-    # CoolExperiment.run("PermutationTesting")
-    # CoolExperiment.run("Debug")
+    # Calcium_1 = ExperimentManager(1, "Calcium", "./Runs/Calcium/100uA/")
+    # Calcium_1.run("Step")
+    # Calcium_2 = ExperimentManager(2, "Calcium", "./Runs/Calcium/200uA/")
+    # Calcium_2.run("Step")
+    # Calcium_3 = ExperimentManager(2, "Calcium", "./Runs/Calcium/300uA/")
+    # Calcium_3.run("Step")
+
+    # Saghafi_M_1 = ExperimentManager(1, "Saghafi_M", "./Runs/Saghafi_M/100uA/")
+    # Saghafi_M_1.run("Step")
+    # Saghafi_M_2 = ExperimentManager(2, "Saghafi_M", "./Runs/Saghafi_M/200uA/")
+    # Saghafi_M_2.run("Step")
+    # Saghafi_M_3 = ExperimentManager(3, "Saghafi_M", "./Runs/Saghafi_M/300uA/")
+    # Saghafi_M_3.run("Step")
