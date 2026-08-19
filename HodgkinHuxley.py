@@ -191,7 +191,7 @@ class HogdkinHuxley:
                 self.n_H0 = boltzmann(self.V0, self.Vn_H, self.kn_H)
             case "Saghafi_DE":
                 # Initial membrane voltage
-                self.V0 = -75.5
+                self.V0 = -80
                 # Initialize conductance
                 self.g_NaT = 7.2603
                 self.g_NaP = 0.0423
@@ -475,7 +475,7 @@ class HogdkinHuxley:
             self.n_H0 = z[9, -1]
             self.V0 = z[10, -1]
             self.Ca_c0 = z[11, -1]
-            print(self.V0)
+            # print(self.V0)
         return z
     #Plot voltage over time
     def plotVoltageTimeSeries(self, saveLocation, saveNumber, save = True, show = True, additionalText="", i="NOTHING"):
@@ -563,23 +563,26 @@ class HogdkinHuxley:
     def plotAdaption(self, saveLocation, saveNumber, extraText="", i="NOTHING", save=True):
         #Get the spikes
         peak_index = find_peaks(self.t_V, height=0)[0]
-        interSpikeInterval = np.zeros(len(peak_index) - 1)
-        #Calculate inter-spike intervals
-        for firstIndex in range(len(peak_index) - 1):
-            secondIndex = firstIndex + 1
-            interSpikeInterval[firstIndex] = self.final_t_eval[peak_index[secondIndex]] - self.final_t_eval[peak_index[firstIndex]]
-        list = self.final_t_eval[peak_index]
-        #Plot frequency
-        if i == "NOTHING":
-            plt.plot(list[:-1], 1 / interSpikeInterval)
+        if len(peak_index) > 1:
+            interSpikeInterval = np.zeros(len(peak_index) - 1)
+            #Calculate inter-spike intervals
+            for firstIndex in range(len(peak_index) - 1):
+                secondIndex = firstIndex + 1
+                interSpikeInterval[firstIndex] = self.final_t_eval[peak_index[secondIndex]] - self.final_t_eval[peak_index[firstIndex]]
+            list = self.final_t_eval[peak_index]
+            #Plot frequency
+            if i == "NOTHING":
+                plt.plot(list[:-1], 1 / interSpikeInterval)
+            else:
+                plt.plot(list[:-1], 1/interSpikeInterval, label=i)
+            plt.xlabel("t (ms)")
+            plt.ylabel("Frequency")
+            plt.title("Spike-frequency adaptation " + extraText)
+            if save:
+                plt.savefig(saveLocation + str(saveNumber) + ".8.Adaptation" + ".png")
+                plt.show()
         else:
-            plt.plot(list[:-1], 1/interSpikeInterval, label=i)
-        plt.xlabel("t (ms)")
-        plt.ylabel("Frequency")
-        plt.title("Spike-frequency adaptation " + extraText)
-        if save:
-            plt.savefig(saveLocation + str(saveNumber) + ".8.Adaptation" + ".png")
-            plt.show()
+            print("Not enough spikes to plot spike-frequency adaptation")
 
     # def plotGatingPerVoltageTrace(self):
     #     V_array = np.linspace(-100, 40, 1000)

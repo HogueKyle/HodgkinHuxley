@@ -8,7 +8,16 @@ from HodgkinHuxley import HogdkinHuxley
 from ParallelFunctions import permute
 from utils import residuals, printText
 
-
+'''
+This class controls each available class of experiment which can be run with the model.
+It contains the following functions:
+"Restart" replaces the model with a fresh one.
+Constant injects a constant current into the model.
+Step injects a step current into the model.
+Chirp injects a ZAP or CHIRP current into the model.
+PermutationTesting runs over an array of values to plot adaptation.
+PermutationTesting2 runs the model over two arrays of values in parallel.
+'''
 class ExperimentManager:
     #Initialize class
     def __init__(self, peakCurrent, modelType, saveLocation = "./Out/"):
@@ -78,8 +87,8 @@ class ExperimentManager:
             case "Step":
                 print("Running Step Experiment")
                 # Run to steady state
-                # current = Steady(0, 30000)
-                # self.neuron.runModel(self.I_hold, current, True, self.useSK, self.useH, False, True, False)
+                current = Steady(0, 30000)
+                self.neuron.runModel(self.I_hold, current, True, self.useSK, self.useH, False, True, False)
                 # Run no current
                 current = Steady(0, 500)
                 self.neuron.runModel(self.I_hold, current, True, self.useSK, self.useH, True, True, False)
@@ -142,7 +151,7 @@ class ExperimentManager:
                 #Create array of values to search across
                 g_SK_Array = np.array(np.linspace(0, 10000, iterations))
                 k_SK_Array = np.array(np.linspace(0, 10000, iterations))
-                valueArray = np.zeros([iterations ** 2, 5])
+                valueArray = np.zeros([iterations ** 2, 6])
                 #Pass model type
                 modelType = 0
                 match self.modelType:

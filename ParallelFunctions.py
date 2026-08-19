@@ -1,3 +1,5 @@
+import os
+
 from Electrode import Steady
 from HodgkinHuxley import HogdkinHuxley
 from utils import printText
@@ -13,6 +15,9 @@ Currently set to permute over g_SK and k_SK, can be modified.
 '''
 def permute(starting_I_hold, peakCurrent, plotNumber, firstValue, secondValue, modelType2):
     saveLocation = "./CalciumParameterSearch/"
+    # Make output folder if necessary
+    if not os.path.exists(saveLocation):
+        os.makedirs(saveLocation)
     # Get model type
     modelType = "Nowacki"
     match modelType2:
